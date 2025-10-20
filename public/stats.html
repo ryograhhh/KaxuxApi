@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics - KazuX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background">
+    <!-- Navigation -->
+    <nav class="border-b border-border bg-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="share-2" class="w-6 h-6"></i>
+                    <span class="text-xl font-bold text-foreground">KazuX</span>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button id="notificationBtn" class="relative p-2 hover:bg-secondary rounded-md">
+                        <i data-lucide="bell" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">0</span>
+                    </button>
+                    
+                    <button id="profileDropdownBtn" class="flex items-center space-x-2 hover:bg-secondary p-1.5 sm:p-2 rounded-md">
+                        <img id="headerProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-gray-200">
+                        <i data-lucide="chevron-down" class="w-4 h-4 hidden sm:block"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Dropdown Menu -->
+        <div id="profileDropdown" class="hidden absolute right-4 mt-2 w-64 bg-white border border-border rounded-lg shadow-lg z-50">
+            <div class="p-4 border-b border-border">
+                <div class="flex items-center space-x-3">
+                    <img id="dropdownProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                    <div class="flex-1 min-w-0">
+                        <p id="dropdownUsername" class="font-semibold text-foreground truncate">Loading...</p>
+                        <p class="text-xs text-muted-foreground">API User</p>
+                    </div>
+                </div>
+            </div>
+            <div class="py-2">
+                <a href="/index.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="home" class="w-4 h-4"></i>
+                    <span>Home</span>
+                </a>
+                <a href="/profile.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="/stats.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="bar-chart" class="w-4 h-4"></i>
+                    <span>Statistics</span>
+                </a>
+                <a href="/documentation.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    <span>Documentation</span>
+                </a>
+                <hr class="my-2 border-border">
+                <button id="logoutBtn" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-red-50 w-full text-left text-red-600 text-sm">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Notifications Panel -->
+        <div id="notificationPanel" class="hidden absolute right-4 mt-2 w-80 sm:w-96 bg-white border border-border rounded-lg shadow-lg z-50 max-h-[32rem] overflow-y-auto">
+            <div class="p-4 border-b border-border sticky top-0 bg-white">
+                <h3 class="font-semibold text-foreground">Notifications</h3>
+            </div>
+            <div id="notificationsList"></div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl sm:text-3xl font-bold text-foreground mb-2">Usage Statistics</h1>
+            <p class="text-muted-foreground">Track your API usage and activity</p>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Total Requests</span>
+                    <i data-lucide="activity" class="w-4 h-4 text-blue-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-foreground" id="totalRequests">0</div>
+            </div>
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Successful</span>
+                    <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-green-600" id="successfulRequests">0</div>
+            </div>
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Failed</span>
+                    <i data-lucide="x-circle" class="w-4 h-4 text-red-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-red-600" id="failedRequests">0</div>
+            </div>
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Last Request</span>
+                    <i data-lucide="clock" class="w-4 h-4 text-purple-600"></i>
+                </div>
+                <div class="text-sm font-semibold text-foreground" id="lastRequest">Never</div>
+            </div>
+        </div>
+
+        <!-- User Info Card -->
+        <div class="bg-white border border-border rounded-lg p-6 mb-8">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-secondary rounded-lg">
+                    <i data-lucide="user" class="w-5 h-5 text-primary"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-foreground">Account Information</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="flex items-center space-x-4">
+                    <img id="userProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-16 h-16 rounded-full object-cover border-2 border-border">
+                    <div>
+                        <div class="font-semibold text-foreground" id="userName">Loading...</div>
+                        <div class="text-sm text-muted-foreground" id="userGender">-</div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-muted-foreground flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                            Birthday
+                        </span>
+                        <span id="userBirthday" class="font-semibold text-foreground">-</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-muted-foreground flex items-center gap-2">
+                            <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                            Member Since
+                        </span>
+                        <span id="userCreatedAt" class="font-semibold text-foreground">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Key Card -->
+        <div class="bg-white border border-border rounded-lg p-6 mb-8">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-secondary rounded-lg">
+                    <i data-lucide="key" class="w-5 h-5 text-primary"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-foreground">API Key</h3>
+            </div>
+            
+            <div class="flex gap-2">
+                <input type="password" id="apiKey" readonly class="flex-1 px-3 py-2 border border-input rounded-md bg-secondary text-sm font-mono">
+                <button id="toggleApiKey" class="px-3 py-2 border border-input rounded-md hover:bg-secondary transition">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+                <button id="copyApiKey" class="px-3 py-2 border border-input rounded-md hover:bg-secondary transition">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <p class="text-xs text-muted-foreground mt-2">Use this API key to authenticate your requests</p>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white border border-border rounded-lg p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-secondary rounded-lg">
+                        <i data-lucide="list" class="w-5 h-5 text-primary"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-foreground">Recent Activity</h3>
+                </div>
+                <button onclick="loadStats()" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>Refresh
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-secondary">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase">Endpoint</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase hidden sm:table-cell">Method</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase hidden lg:table-cell">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentLogsBody" class="divide-y divide-border">
+                        <!-- Logs will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="noLogs" class="text-center py-8 text-muted-foreground hidden">
+                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                <p>No activity yet</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        const token = localStorage.getItem('sessionToken');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        let userProfile = null;
+
+        // Profile dropdown toggle
+        document.getElementById('profileDropdownBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = document.getElementById('profileDropdown');
+            const notifPanel = document.getElementById('notificationPanel');
+            
+            dropdown.classList.toggle('hidden');
+            notifPanel.classList.add('hidden');
+        });
+
+        // Notification panel toggle
+        document.getElementById('notificationBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notificationPanel');
+            const dropdown = document.getElementById('profileDropdown');
+            
+            panel.classList.toggle('hidden');
+            dropdown.classList.add('hidden');
+            
+            if (!panel.classList.contains('hidden')) {
+                loadNotifications();
+            }
+        });
+
+        document.addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.add('hidden');
+            document.getElementById('notificationPanel').classList.add('hidden');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { 
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            localStorage.removeItem('sessionToken');
+            window.location.href = '/login.html';
+        });
+
+        function getProfilePictureUrl(picture) {
+            if (!picture || picture === '') return '/uploads/profiles/default.png';
+            if (picture.startsWith('http://') || picture.startsWith('https://')) return picture;
+            if (picture.startsWith('/')) return picture;
+            return '/' + picture;
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('sessionToken');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    throw new Error('Failed to fetch profile');
+                }
+                
+                const data = await response.json();
+                userProfile = data.data;
+                
+                const profilePicUrl = getProfilePictureUrl(userProfile.profilePicture);
+                
+                document.getElementById('headerProfilePic').src = profilePicUrl;
+                document.getElementById('dropdownProfilePic').src = profilePicUrl;
+                document.getElementById('dropdownUsername').textContent = userProfile.username;
+                
+                if (userProfile.unreadNotifications > 0) {
+                    document.getElementById('notificationBadge').textContent = userProfile.unreadNotifications;
+                    document.getElementById('notificationBadge').classList.remove('hidden');
+                } else {
+                    document.getElementById('notificationBadge').classList.add('hidden');
+                }
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Profile error:', error);
+            }
+        }
+
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/notifications', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                
+                const panel = document.getElementById('notificationsList');
+                const badge = document.getElementById('notificationBadge');
+                
+                if (result.data.notifications.length === 0) {
+                    panel.innerHTML = '<div class="p-4 text-sm text-muted-foreground text-center">No notifications</div>';
+                    badge.classList.add('hidden');
+                } else {
+                    const unreadCount = result.data.unreadCount;
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                    
+                    panel.innerHTML = result.data.notifications.map(notif => `
+                        <div class="p-4 border-b border-border ${notif.isRead ? 'bg-white' : 'bg-blue-50'} hover:bg-secondary cursor-pointer" onclick="markAsRead('${notif._id}')">
+                            <div class="flex items-start space-x-3">
+                                <i data-lucide="${notif.type === 'error' ? 'alert-circle' : notif.type === 'warning' ? 'alert-triangle' : notif.type === 'success' ? 'check-circle' : 'info'}" class="w-5 h-5 text-primary flex-shrink-0 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-foreground">${notif.title}</p>
+                                    <p class="text-sm text-muted-foreground mt-1">${notif.message}</p>
+                                    <p class="text-xs text-muted-foreground mt-2">${new Date(notif.createdAt).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                console.error('Notifications error:', error);
+            }
+        }
+
+        async function markAsRead(notificationId) {
+            try {
+                await fetch(`/api/notifications/${notificationId}/read`, { 
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                loadNotifications();
+                loadProfile();
+            } catch (error) {
+                console.error('Mark read error:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const user = data.data.user;
+                    const stats = data.data.stats;
+                    const logs = data.data.recentLogs;
+                    
+                    // Update stats cards
+                    document.getElementById('totalRequests').textContent = stats.totalRequests;
+                    document.getElementById('successfulRequests').textContent = stats.successfulRequests;
+                    document.getElementById('failedRequests').textContent = stats.failedRequests;
+                    document.getElementById('lastRequest').textContent = stats.lastRequest ? new Date(stats.lastRequest).toLocaleString() : 'Never';
+                    
+                    // Update user info
+                    const profilePicUrl = getProfilePictureUrl(user.profilePicture);
+                    document.getElementById('userProfilePic').src = profilePicUrl;
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userGender').textContent = user.gender.charAt(0).toUpperCase() + user.gender.slice(1);
+                    document.getElementById('userBirthday').textContent = new Date(user.birthday).toLocaleDateString();
+                    document.getElementById('userCreatedAt').textContent = new Date(user.createdAt).toLocaleDateString();
+                    document.getElementById('apiKey').value = user.apiKey;
+                    
+                    // Update recent logs
+                    const tbody = document.getElementById('recentLogsBody');
+                    const noLogs = document.getElementById('noLogs');
+                    
+                    if (logs.length === 0) {
+                        tbody.innerHTML = '';
+                        noLogs.classList.remove('hidden');
+                    } else {
+                        noLogs.classList.add('hidden');
+                        tbody.innerHTML = logs.map(log => `
+                            <tr>
+                                <td class="px-4 py-3 text-sm font-mono text-xs">${log.endpoint || '-'}</td>
+                                <td class="px-4 py-3 text-sm hidden sm:table-cell">${log.method || '-'}</td>
+                                <td class="px-4 py-3">
+                                    ${log.success ? 
+                                        '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Success</span>' :
+                                        '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Failed</span>'
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-xs text-muted-foreground hidden lg:table-cell">${new Date(log.timestamp).toLocaleString()}</td>
+                            </tr>
+                        `).join('');
+                    }
+                    
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        // Toggle API Key visibility
+        document.getElementById('toggleApiKey').addEventListener('click', () => {
+            const input = document.getElementById('apiKey');
+            const icon = document.querySelector('#toggleApiKey i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        });
+
+        // Copy API Key
+        document.getElementById('copyApiKey').addEventListener('click', () => {
+            const apiKey = document.getElementById('apiKey').value;
+            navigator.clipboard.writeText(apiKey);
+            alert('API Key copied to clipboard!');
+        });
+
+        // Initialize
+        loadProfile();
+        loadStats();
+        setInterval(loadProfile, 30000);
+    </script>
+</body>
+</html>
