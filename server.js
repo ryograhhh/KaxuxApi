@@ -29,7 +29,6 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  // Accept images only
   if (!file.mimetype.startsWith('image/')) {
     return cb(new Error('Only image files are allowed!'), false);
   }
@@ -40,13 +39,19 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max file size
+    fileSize: 5 * 1024 * 1024
   }
 });
 
-// MongoDB Connection
+// MongoDB Connection - FIXED: Set strict to false
 const uri = "mongodb+srv://biarpogihehe:XaneKath1@cluster0.beucph6.mongodb.net/facebook-token-api?retryWrites=true&w=majority&appName=Cluster0";
-const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
+const clientOptions = { 
+  serverApi: { 
+    version: '1', 
+    strict: false,
+    deprecationErrors: true 
+  } 
+};
 
 mongoose.connect(uri, clientOptions)
   .then(() => {
@@ -199,7 +204,6 @@ async function validateApiKey(req, res, next) {
       });
     }
 
-    // Check if user is banned
     if (user.isBanned) {
       await RequestLog.create({
         userId: user._id,
@@ -221,18 +225,17 @@ async function validateApiKey(req, res, next) {
       });
     }
 
-    // Update request count and last request time
     user.requestCount += 1;
     user.lastRequest = new Date();
     await user.save();
 
-    // Log the request
     await RequestLog.create({
       userId: user._id,
       username: user.username,
       apiKey: apiKey,
       endpoint: req.path,
       method: req.method,
+      success: true,
       ipAddress: req.ip || req.connection.remoteAddress
     });
 
@@ -270,7 +273,6 @@ async function authenticateSession(req, res, next) {
       });
     }
 
-    // Check if user is banned
     if (session.userId.isBanned) {
       return res.status(403).json({
         success: false,
@@ -390,9 +392,7 @@ async function get(cookie) {
   }
 }
 
-// ==================== AUTH ROUTES ====================
-
-// Signup
+// AUTH ROUTES
 app.post('/api/auth/signup', async (req, res) => {
   try {
     const { username, password, gender, birthday } = req.body;
@@ -430,7 +430,6 @@ app.post('/api/auth/signup', async (req, res) => {
       apiKey
     });
 
-    // Create welcome notification
     await Notification.create({
       userId: user._id,
       title: "Welcome to KazuX API! 🎉",
@@ -457,7 +456,6 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
-// Login
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -477,7 +475,6 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Check if banned
     if (user.isBanned) {
       return res.status(403).json({
         success: false,
@@ -530,7 +527,6 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Logout
 app.post('/api/auth/logout', authenticateSession, async (req, res) => {
   try {
     await Session.deleteOne({ _id: req.session._id });
@@ -547,7 +543,6 @@ app.post('/api/auth/logout', authenticateSession, async (req, res) => {
   }
 });
 
-// Get current user info
 app.get('/api/auth/me', authenticateSession, async (req, res) => {
   try {
     const unreadNotifications = await Notification.countDocuments({
@@ -578,9 +573,7 @@ app.get('/api/auth/me', authenticateSession, async (req, res) => {
   }
 });
 
-// ==================== PROFILE ROUTES ====================
-
-// Get user profile
+// PROFILE ROUTES
 app.get('/api/profile', authenticateSession, async (req, res) => {
   try {
     res.json({
@@ -605,7 +598,6 @@ app.get('/api/profile', authenticateSession, async (req, res) => {
   }
 });
 
-// Upload profile picture
 app.post('/api/profile/upload-picture', authenticateSession, upload.single('profilePicture'), async (req, res) => {
   try {
     if (!req.file) {
@@ -615,7 +607,6 @@ app.post('/api/profile/upload-picture', authenticateSession, upload.single('prof
       });
     }
 
-    // Delete old profile picture if exists and not a URL
     if (req.user.profilePicture && !req.user.profilePicture.startsWith('http')) {
       const oldPicturePath = path.join(__dirname, 'public', req.user.profilePicture);
       if (fs.existsSync(oldPicturePath)) {
@@ -649,7 +640,6 @@ app.post('/api/profile/upload-picture', authenticateSession, upload.single('prof
   }
 });
 
-// Delete profile picture
 app.delete('/api/profile/delete-picture', authenticateSession, async (req, res) => {
   try {
     if (!req.user.profilePicture) {
@@ -659,7 +649,6 @@ app.delete('/api/profile/delete-picture', authenticateSession, async (req, res) 
       });
     }
 
-    // Only delete if it's a local file, not a URL
     if (!req.user.profilePicture.startsWith('http')) {
       const picturePath = path.join(__dirname, 'public', req.user.profilePicture);
       if (fs.existsSync(picturePath)) {
@@ -682,7 +671,6 @@ app.delete('/api/profile/delete-picture', authenticateSession, async (req, res) 
   }
 });
 
-// Update profile information
 app.patch('/api/profile/update', authenticateSession, async (req, res) => {
   try {
     const { gender, birthday } = req.body;
@@ -717,7 +705,6 @@ app.patch('/api/profile/update', authenticateSession, async (req, res) => {
   }
 });
 
-// Change password
 app.patch('/api/profile/change-password', authenticateSession, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -753,7 +740,6 @@ app.patch('/api/profile/change-password', authenticateSession, async (req, res) 
   }
 });
 
-// Regenerate API Key
 app.post('/api/profile/regenerate-apikey', authenticateSession, async (req, res) => {
   try {
     const newApiKey = generateApiKey();
@@ -775,9 +761,7 @@ app.post('/api/profile/regenerate-apikey', authenticateSession, async (req, res)
   }
 });
 
-// ==================== NOTIFICATION ROUTES ====================
-
-// Get user notifications
+// NOTIFICATION ROUTES
 app.get('/api/notifications', authenticateSession, async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user._id })
@@ -804,7 +788,6 @@ app.get('/api/notifications', authenticateSession, async (req, res) => {
   }
 });
 
-// Mark notification as read
 app.patch('/api/notifications/:notificationId/read', authenticateSession, async (req, res) => {
   try {
     const notification = await Notification.findOne({
@@ -834,7 +817,6 @@ app.patch('/api/notifications/:notificationId/read', authenticateSession, async 
   }
 });
 
-// Mark all notifications as read
 app.patch('/api/notifications/read-all', authenticateSession, async (req, res) => {
   try {
     await Notification.updateMany(
@@ -854,9 +836,7 @@ app.patch('/api/notifications/read-all', authenticateSession, async (req, res) =
   }
 });
 
-// ==================== ANNOUNCEMENT ROUTES ====================
-
-// Get active announcements (public)
+// ANNOUNCEMENT ROUTES
 app.get('/api/announcements', async (req, res) => {
   try {
     const announcements = await Announcement.find({
@@ -881,9 +861,7 @@ app.get('/api/announcements', async (req, res) => {
   }
 });
 
-// ==================== USER STATS ROUTES ====================
-
-// Get user stats
+// USER STATS ROUTES
 app.get('/api/stats', authenticateSession, async (req, res) => {
   try {
     const logs = await RequestLog.find({ userId: req.user._id })
@@ -928,9 +906,7 @@ app.get('/api/stats', authenticateSession, async (req, res) => {
   }
 });
 
-// ==================== ADMIN ROUTES ====================
-
-// Get all users (Admin only)
+// ADMIN ROUTES
 app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
   try {
     const users = await User.find()
@@ -950,7 +926,6 @@ app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Get all request logs (Admin only)
 app.get('/api/admin/logs', authenticateAdmin, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 100;
@@ -972,7 +947,6 @@ app.get('/api/admin/logs', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Get system statistics (Admin only)
 app.get('/api/admin/statistics', authenticateAdmin, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
@@ -1023,7 +997,6 @@ app.get('/api/admin/statistics', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Toggle user active status (Admin only)
 app.patch('/api/admin/users/:userId/toggle-active', authenticateAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -1038,7 +1011,6 @@ app.patch('/api/admin/users/:userId/toggle-active', authenticateAdmin, async (re
     user.isActive = !user.isActive;
     await user.save();
 
-    // Send notification to user
     await Notification.create({
       userId: user._id,
       title: user.isActive ? "Account Activated ✅" : "Account Deactivated ⚠️",
@@ -1064,7 +1036,6 @@ app.patch('/api/admin/users/:userId/toggle-active', authenticateAdmin, async (re
   }
 });
 
-// Ban user (Admin only)
 app.post('/api/admin/users/:userId/ban', authenticateAdmin, async (req, res) => {
   try {
     const { reason } = req.body;
@@ -1098,7 +1069,6 @@ app.post('/api/admin/users/:userId/ban', authenticateAdmin, async (req, res) => 
     user.bannedBy = req.user.username;
     await user.save();
 
-    // Send notification to user
     await Notification.create({
       userId: user._id,
       title: "Account Banned 🚫",
@@ -1125,7 +1095,6 @@ app.post('/api/admin/users/:userId/ban', authenticateAdmin, async (req, res) => 
   }
 });
 
-// Unban user (Admin only)
 app.post('/api/admin/users/:userId/unban', authenticateAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -1143,7 +1112,6 @@ app.post('/api/admin/users/:userId/unban', authenticateAdmin, async (req, res) =
     user.bannedBy = null;
     await user.save();
 
-    // Send notification to user
     await Notification.create({
       userId: user._id,
       title: "Account Unbanned ✅",
@@ -1167,7 +1135,6 @@ app.post('/api/admin/users/:userId/unban', authenticateAdmin, async (req, res) =
   }
 });
 
-// Delete user (Admin only)
 app.delete('/api/admin/users/:userId', authenticateAdmin, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
@@ -1186,7 +1153,6 @@ app.delete('/api/admin/users/:userId', authenticateAdmin, async (req, res) => {
       });
     }
 
-    // Delete profile picture if exists and not a URL
     if (user.profilePicture && !user.profilePicture.startsWith('http')) {
       const picturePath = path.join(__dirname, 'public', user.profilePicture);
       if (fs.existsSync(picturePath)) {
@@ -1211,7 +1177,6 @@ app.delete('/api/admin/users/:userId', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Create announcement (Admin only)
 app.post('/api/admin/announcements', authenticateAdmin, async (req, res) => {
   try {
     const { title, message, type, expiresAt } = req.body;
@@ -1232,7 +1197,6 @@ app.post('/api/admin/announcements', authenticateAdmin, async (req, res) => {
       createdByUsername: req.user.username
     });
 
-    // Send notification to all users
     const users = await User.find({ isActive: true });
     const notifications = users.map(user => ({
       userId: user._id,
@@ -1256,7 +1220,6 @@ app.post('/api/admin/announcements', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Get all announcements (Admin only)
 app.get('/api/admin/announcements', authenticateAdmin, async (req, res) => {
   try {
     const announcements = await Announcement.find()
@@ -1275,7 +1238,6 @@ app.get('/api/admin/announcements', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Delete announcement (Admin only)
 app.delete('/api/admin/announcements/:announcementId', authenticateAdmin, async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndDelete(req.params.announcementId);
@@ -1299,7 +1261,6 @@ app.delete('/api/admin/announcements/:announcementId', authenticateAdmin, async 
   }
 });
 
-// Toggle announcement active status (Admin only)
 app.patch('/api/admin/announcements/:announcementId/toggle', authenticateAdmin, async (req, res) => {
   try {
     const announcement = await Announcement.findById(req.params.announcementId);
@@ -1327,18 +1288,19 @@ app.patch('/api/admin/announcements/:announcementId/toggle', authenticateAdmin, 
   }
 });
 
-// ==================== TOKEN ENDPOINT ====================
-
-// Main token endpoint (protected with API key)
+// TOKEN ENDPOINT - FIXED
 app.get('/token/:cookie', validateApiKey, async (req, res) => {
   const cookie = req.params.cookie;
   
   if (!cookie) {
-    await RequestLog.updateOne(
-      { userId: req.user._id },
-      { success: false, errorMessage: "Cookie parameter is required" },
-      { sort: { timestamp: -1 } }
-    );
+    const lastLog = await RequestLog.findOne({ userId: req.user._id })
+      .sort({ timestamp: -1 });
+    
+    if (lastLog) {
+      lastLog.success = false;
+      lastLog.errorMessage = "Cookie parameter is required";
+      await lastLog.save();
+    }
     
     return res.json({
       success: false,
@@ -1349,25 +1311,25 @@ app.get('/token/:cookie', validateApiKey, async (req, res) => {
   try {
     const result = await get(cookie);
     
-    await RequestLog.updateOne(
-      { userId: req.user._id },
-      { 
-        success: result.success,
-        errorMessage: result.success ? null : result.error
-      },
-      { sort: { timestamp: -1 } }
-    );
+    const lastLog = await RequestLog.findOne({ userId: req.user._id })
+      .sort({ timestamp: -1 });
+    
+    if (lastLog) {
+      lastLog.success = result.success;
+      lastLog.errorMessage = result.success ? null : result.error;
+      await lastLog.save();
+    }
     
     res.json(result);
   } catch (error) {
-    await RequestLog.updateOne(
-      { userId: req.user._id },
-      { 
-        success: false,
-        errorMessage: error.message
-      },
-      { sort: { timestamp: -1 } }
-    );
+    const lastLog = await RequestLog.findOne({ userId: req.user._id })
+      .sort({ timestamp: -1 });
+    
+    if (lastLog) {
+      lastLog.success = false;
+      lastLog.errorMessage = error.message;
+      await lastLog.save();
+    }
     
     res.json({
       success: false,
@@ -1376,8 +1338,7 @@ app.get('/token/:cookie', validateApiKey, async (req, res) => {
   }
 });
 
-// ==================== DOCUMENTATION ENDPOINT ====================
-
+// DOCUMENTATION ENDPOINT
 app.get('/api/documentation', (req, res) => {
   res.json({
     success: true,
@@ -1569,6 +1530,6 @@ app.get('/api/documentation', (req, res) => {
   });
 });
 
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.listen(port, () => console.log(`✅ Server running on port ${port}`));
 
 module.exports = app;
