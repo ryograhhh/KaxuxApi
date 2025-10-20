@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - KazuX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background">
+    <!-- Navigation -->
+    <nav class="border-b border-border bg-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="share-2" class="w-6 h-6"></i>
+                    <span class="text-xl font-bold text-foreground">KazuX</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="/" class="text-muted-foreground hover:text-foreground transition">Home</a>
+                    <a href="/profile" class="text-foreground font-medium">Profile</a>
+                    <button id="logoutBtn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm">
+                        Logout
+                    </button>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden border-t border-border">
+            <div class="px-4 py-3 space-y-3">
+                <a href="/" class="block text-muted-foreground py-2">Home</a>
+                <a href="/profile" class="block text-foreground font-medium py-2">Profile</a>
+                <button id="mobileLogoutBtn" class="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <!-- Profile Card -->
+            <div class="lg:col-span-1">
+                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                    <div class="flex flex-col items-center">
+                        <div class="relative mb-4">
+                            <img id="profilePicture" src="/uploads/profiles/default.png" alt="Profile" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-border">
+                            <label for="fileInput" class="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2.5 rounded-full cursor-pointer hover:bg-primary/90 transition shadow-md">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                            </label>
+                            <input type="file" id="fileInput" accept="image/*" class="hidden">
+                        </div>
+                        <h2 id="profileUsername" class="text-xl font-bold text-foreground mb-1">Username</h2>
+                        
+                        <div class="w-full space-y-3 mt-4 pt-4 border-t border-border">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground flex items-center gap-2">
+                                    <i data-lucide="activity" class="w-4 h-4"></i>
+                                    Total Requests
+                                </span>
+                                <span id="profileRequestCount" class="font-semibold text-foreground">0</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-muted-foreground flex items-center gap-2">
+                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                    Member Since
+                                </span>
+                                <span id="profileCreatedAt" class="font-semibold text-foreground text-xs">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Edit Profile -->
+                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="p-2 bg-secondary rounded-lg">
+                            <i data-lucide="user-cog" class="w-5 h-5 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground">Edit Profile</h3>
+                    </div>
+
+                    <form id="updateProfileForm" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Gender</label>
+                                <select id="gender" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Birthday</label>
+                                <input type="date" id="birthday" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                            </div>
+                        </div>
+
+                        <div id="updateMessage" class="hidden"></div>
+
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition flex items-center justify-center space-x-2 text-sm font-medium">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span>Save Changes</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- API Key -->
+                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="p-2 bg-secondary rounded-lg">
+                            <i data-lucide="key" class="w-5 h-5 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground">API Key</h3>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Your API Key</label>
+                            <div class="flex gap-2">
+                                <input type="password" id="apiKey" readonly class="flex-1 px-3 py-2 border border-input rounded-md bg-secondary text-sm font-mono">
+                                <button id="toggleApiKey" class="px-3 py-2 border border-input rounded-md hover:bg-secondary transition">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                                <button id="copyApiKey" class="px-3 py-2 border border-input rounded-md hover:bg-secondary transition">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="apiKeyMessage" class="hidden"></div>
+
+                        <button id="regenerateApiKey" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition flex items-center justify-center space-x-2 text-sm font-medium">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            <span>Regenerate API Key</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="p-2 bg-secondary rounded-lg">
+                            <i data-lucide="lock" class="w-5 h-5 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground">Change Password</h3>
+                    </div>
+
+                    <form id="changePasswordForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Current Password</label>
+                            <input type="password" id="currentPassword" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">New Password</label>
+                            <input type="password" id="newPassword" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                        </div>
+
+                        <div id="passwordMessage" class="hidden"></div>
+
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition flex items-center justify-center space-x-2 text-sm font-medium">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                            <span>Update Password</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        const token = localStorage.getItem('sessionToken');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('mobileLogoutBtn').addEventListener('click', logout);
+
+        async function logout() {
+            await fetch('/api/auth/logout', { 
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            localStorage.removeItem('sessionToken');
+            window.location.href = '/login.html';
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('sessionToken');
+                        window.location.href = '/login.html';
+                    }
+                    return;
+                }
+
+                const data = await response.json();
+                const profile = data.data;
+                
+                document.getElementById('profileUsername').textContent = profile.username;
+                document.getElementById('profileRequestCount').textContent = profile.requestCount;
+                document.getElementById('profileCreatedAt').textContent = new Date(profile.createdAt).toLocaleDateString();
+                
+                if (profile.profilePicture) {
+                    document.getElementById('profilePicture').src = profile.profilePicture;
+                }
+
+                document.getElementById('gender').value = profile.gender;
+                document.getElementById('birthday').value = profile.birthday.split('T')[0];
+                document.getElementById('apiKey').value = profile.apiKey;
+            } catch (error) {
+                console.error('Load profile error:', error);
+            }
+        }
+
+        // Upload profile picture
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('profilePicture', file);
+
+            try {
+                const response = await fetch('/api/profile/upload-picture', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('profilePicture').src = data.data.profilePicture;
+                    showMessage('updateMessage', 'Profile picture updated!', 'success');
+                } else {
+                    showMessage('updateMessage', data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('updateMessage', 'Failed to upload picture', 'error');
+            }
+        });
+
+        // Update profile
+        document.getElementById('updateProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const gender = document.getElementById('gender').value;
+            const birthday = document.getElementById('birthday').value;
+
+            try {
+                const response = await fetch('/api/profile/update', {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ gender, birthday })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('updateMessage', 'Profile updated successfully!', 'success');
+                } else {
+                    showMessage('updateMessage', data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('updateMessage', 'Failed to update profile', 'error');
+            }
+        });
+
+        // Toggle API Key visibility
+        document.getElementById('toggleApiKey').addEventListener('click', () => {
+            const input = document.getElementById('apiKey');
+            const icon = document.querySelector('#toggleApiKey i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        });
+
+        // Copy API Key
+        document.getElementById('copyApiKey').addEventListener('click', () => {
+            const apiKey = document.getElementById('apiKey').value;
+            navigator.clipboard.writeText(apiKey);
+            showMessage('apiKeyMessage', 'API Key copied to clipboard!', 'success');
+        });
+
+        // Regenerate API Key
+        document.getElementById('regenerateApiKey').addEventListener('click', async () => {
+            if (!confirm('Are you sure? This will invalidate your current API key.')) return;
+
+            try {
+                const response = await fetch('/api/profile/regenerate-apikey', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('apiKey').value = data.data.apiKey;
+                    showMessage('apiKeyMessage', 'API Key regenerated successfully!', 'success');
+                } else {
+                    showMessage('apiKeyMessage', data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('apiKeyMessage', 'Failed to regenerate API key', 'error');
+            }
+        });
+
+        // Change password
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            try {
+                const response = await fetch('/api/profile/change-password', {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('passwordMessage', 'Password changed successfully!', 'success');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                } else {
+                    showMessage('passwordMessage', data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('passwordMessage', 'Failed to change password', 'error');
+            }
+        });
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            const colors = {
+                success: 'bg-green-50 text-green-800 border-green-200',
+                error: 'bg-red-50 text-red-800 border-red-200'
+            };
+            
+            element.className = `p-3 border rounded-md text-sm ${colors[type]}`;
+            element.textContent = message;
+            element.classList.remove('hidden');
+            
+            setTimeout(() => element.classList.add('hidden'), 5000);
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>
