@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazuX - Facebook Token API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background">
+    <!-- Navigation -->
+    <nav class="border-b border-border bg-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="share-2" class="w-6 h-6"></i>
+                    <span class="text-xl font-bold text-foreground">KazuX</span>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- Notifications -->
+                    <button id="notificationBtn" class="relative p-2 hover:bg-secondary rounded-md">
+                        <i data-lucide="bell" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                        <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">0</span>
+                    </button>
+                    
+                    <!-- Profile Dropdown -->
+                    <button id="profileDropdownBtn" class="flex items-center space-x-2 hover:bg-secondary p-1.5 sm:p-2 rounded-md">
+                        <img id="headerProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-gray-200">
+                        <i data-lucide="chevron-down" class="w-4 h-4 hidden sm:block"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Dropdown Menu -->
+        <div id="profileDropdown" class="hidden absolute right-4 mt-2 w-64 bg-white border border-border rounded-lg shadow-lg z-50">
+            <div class="p-4 border-b border-border">
+                <div class="flex items-center space-x-3">
+                    <img id="dropdownProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                    <div class="flex-1 min-w-0">
+                        <p id="dropdownUsername" class="font-semibold text-foreground truncate">Loading...</p>
+                        <p class="text-xs text-muted-foreground">API User</p>
+                    </div>
+                </div>
+            </div>
+            <div class="py-2">
+                <a href="/profile.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="/stats.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="bar-chart" class="w-4 h-4"></i>
+                    <span>Statistics</span>
+                </a>
+                <hr class="my-2 border-border">
+                <button id="logoutBtn" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-red-50 w-full text-left text-red-600 text-sm">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Notifications Panel -->
+        <div id="notificationPanel" class="hidden absolute right-4 mt-2 w-80 sm:w-96 bg-white border border-border rounded-lg shadow-lg z-50 max-h-[32rem] overflow-y-auto">
+            <div class="p-4 border-b border-border sticky top-0 bg-white">
+                <h3 class="font-semibold text-foreground">Notifications</h3>
+            </div>
+            <div id="notificationsList">
+                <!-- Notifications will be loaded here -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Total Requests</span>
+                    <i data-lucide="activity" class="w-4 h-4 text-muted-foreground"></i>
+                </div>
+                <div class="text-3xl font-bold text-foreground" id="totalRequests">0</div>
+            </div>
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">API Status</span>
+                    <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-green-600">Active</div>
+            </div>
+        </div>
+
+        <!-- Token Generator -->
+        <div class="bg-white border border-border rounded-lg p-6 mb-8">
+            <div class="flex items-center space-x-3 mb-4">
+                <i data-lucide="key" class="w-5 h-5 text-muted-foreground"></i>
+                <h3 class="text-lg font-semibold text-foreground">Generate Facebook Tokens</h3>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-2">Facebook Cookie</label>
+                    <textarea id="cookieInput" rows="4" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm" placeholder="Paste your Facebook cookie here..."></textarea>
+                    <p class="text-xs text-muted-foreground mt-2">💡 Paste your Facebook cookie to generate access tokens</p>
+                </div>
+                
+                <button id="generateBtn" class="w-full sm:w-auto px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition flex items-center justify-center space-x-2">
+                    <i data-lucide="play" class="w-4 h-4"></i>
+                    <span>Generate Tokens</span>
+                </button>
+            </div>
+            
+            <div id="tokenResults" class="mt-6 hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-semibold text-foreground">Generated Tokens</h4>
+                    <button id="copyAllTokens" class="text-sm text-primary hover:underline flex items-center gap-1">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        Copy All
+                    </button>
+                </div>
+                <div id="tokensList" class="space-y-3"></div>
+            </div>
+            
+            <div id="tokenError" class="mt-4 hidden p-4 bg-red-50 border border-red-200 rounded-md">
+                <p class="text-sm text-red-800"></p>
+            </div>
+        </div>
+
+        <!-- Announcements -->
+        <div id="announcementsSection" class="hidden bg-white border border-border rounded-lg p-6">
+            <div class="flex items-center space-x-3 mb-4">
+                <i data-lucide="megaphone" class="w-5 h-5 text-primary"></i>
+                <h3 class="text-lg font-semibold text-foreground">Announcements</h3>
+            </div>
+            <div id="announcementsList"></div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        const token = localStorage.getItem('sessionToken');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        let userProfile = null;
+
+        // Profile dropdown toggle
+        document.getElementById('profileDropdownBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = document.getElementById('profileDropdown');
+            const notifPanel = document.getElementById('notificationPanel');
+            
+            dropdown.classList.toggle('hidden');
+            notifPanel.classList.add('hidden');
+        });
+
+        // Notification panel toggle
+        document.getElementById('notificationBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const panel = document.getElementById('notificationPanel');
+            const dropdown = document.getElementById('profileDropdown');
+            
+            panel.classList.toggle('hidden');
+            dropdown.classList.add('hidden');
+            
+            if (!panel.classList.contains('hidden')) {
+                loadNotifications();
+            }
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.add('hidden');
+            document.getElementById('notificationPanel').classList.add('hidden');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { 
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                localStorage.removeItem('sessionToken');
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function getProfilePictureUrl(picture) {
+            if (!picture || picture === '') {
+                return '/uploads/profiles/default.png';
+            }
+            if (picture.startsWith('http://') || picture.startsWith('https://')) {
+                return picture;
+            }
+            if (picture.startsWith('/')) {
+                return picture;
+            }
+            return '/' + picture;
+        }
+
+        // Load profile
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('sessionToken');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    throw new Error('Failed to fetch profile');
+                }
+                
+                const data = await response.json();
+                userProfile = data.data;
+                
+                const profilePicUrl = getProfilePictureUrl(userProfile.profilePicture);
+                
+                document.getElementById('headerProfilePic').src = profilePicUrl;
+                document.getElementById('headerProfilePic').alt = userProfile.username;
+                
+                document.getElementById('dropdownProfilePic').src = profilePicUrl;
+                document.getElementById('dropdownProfilePic').alt = userProfile.username;
+                document.getElementById('dropdownUsername').textContent = userProfile.username;
+                
+                document.getElementById('totalRequests').textContent = userProfile.requestCount;
+                
+                // Update notification badge
+                if (userProfile.unreadNotifications > 0) {
+                    document.getElementById('notificationBadge').textContent = userProfile.unreadNotifications;
+                    document.getElementById('notificationBadge').classList.remove('hidden');
+                } else {
+                    document.getElementById('notificationBadge').classList.add('hidden');
+                }
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Profile error:', error);
+            }
+        }
+
+        // Load notifications
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/notifications', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                
+                const panel = document.getElementById('notificationsList');
+                const badge = document.getElementById('notificationBadge');
+                
+                if (result.data.notifications.length === 0) {
+                    panel.innerHTML = '<div class="p-4 text-sm text-muted-foreground text-center">No notifications</div>';
+                    badge.classList.add('hidden');
+                } else {
+                    const unreadCount = result.data.unreadCount;
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                    
+                    panel.innerHTML = result.data.notifications.map(notif => `
+                        <div class="p-4 border-b border-border ${notif.isRead ? 'bg-white' : 'bg-blue-50'} hover:bg-secondary cursor-pointer" onclick="markAsRead('${notif._id}')">
+                            <div class="flex items-start space-x-3">
+                                <i data-lucide="${notif.type === 'error' ? 'alert-circle' : notif.type === 'warning' ? 'alert-triangle' : notif.type === 'success' ? 'check-circle' : 'info'}" class="w-5 h-5 text-primary flex-shrink-0 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-foreground">${notif.title}</p>
+                                    <p class="text-sm text-muted-foreground mt-1">${notif.message}</p>
+                                    <p class="text-xs text-muted-foreground mt-2">${new Date(notif.createdAt).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                console.error('Notifications error:', error);
+            }
+        }
+
+        async function markAsRead(notificationId) {
+            try {
+                await fetch(`/api/notifications/${notificationId}/read`, { 
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                loadNotifications();
+                loadProfile();
+            } catch (error) {
+                console.error('Mark read error:', error);
+            }
+        }
+
+        // Load announcements
+        async function loadAnnouncements() {
+            try {
+                const response = await fetch('/api/announcements');
+                const data = await response.json();
+                
+                if (data.data && data.data.length > 0) {
+                    document.getElementById('announcementsSection').classList.remove('hidden');
+                    const typeColors = {
+                        info: 'bg-blue-50 border-blue-200 text-blue-800',
+                        warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                        success: 'bg-green-50 border-green-200 text-green-800',
+                        error: 'bg-red-50 border-red-200 text-red-800'
+                    };
+                    
+                    document.getElementById('announcementsList').innerHTML = data.data.map(ann => `
+                        <div class="p-4 border rounded-md ${typeColors[ann.type] || typeColors.info} mb-3">
+                            <h4 class="font-semibold mb-1">${ann.title}</h4>
+                            <p class="text-sm">${ann.message}</p>
+                            <p class="text-xs mt-2 opacity-75">Posted ${new Date(ann.createdAt).toLocaleDateString()}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Announcements error:', error);
+            }
+        }
+
+        // Generate tokens
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const cookie = document.getElementById('cookieInput').value.trim();
+            const errorDiv = document.getElementById('tokenError');
+            const resultsDiv = document.getElementById('tokenResults');
+            
+            errorDiv.classList.add('hidden');
+            resultsDiv.classList.add('hidden');
+            
+            if (!cookie) {
+                errorDiv.querySelector('p').textContent = 'Please enter a Facebook cookie';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/token/${encodeURIComponent(cookie)}`, {
+                    headers: { 'X-API-Key': userProfile.apiKey }
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    errorDiv.querySelector('p').textContent = data.error || 'Failed to generate tokens';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                const tokens = data.tokens;
+                const tokensList = document.getElementById('tokensList');
+                
+                tokensList.innerHTML = Object.entries(tokens).map(([key, token]) => `
+                    <div class="p-3 bg-secondary rounded-md">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-semibold text-sm">${key}</span>
+                            ${token ? `<button onclick="copyToken('${token}')" class="text-xs text-primary hover:underline flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3 h-3"></i>
+                                Copy
+                            </button>` : ''}
+                        </div>
+                        <div class="text-xs font-mono ${token ? 'text-foreground' : 'text-red-600'}">
+                            ${token || 'Failed to generate'}
+                        </div>
+                    </div>
+                `).join('');
+                
+                resultsDiv.classList.remove('hidden');
+                lucide.createIcons();
+                loadProfile(); // Refresh request count
+            } catch (error) {
+                errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        // Copy token
+        window.copyToken = function(token) {
+            navigator.clipboard.writeText(token);
+            alert('Token copied to clipboard!');
+        };
+
+        // Copy all tokens
+        document.getElementById('copyAllTokens').addEventListener('click', async () => {
+            const cookie = document.getElementById('cookieInput').value.trim();
+            if (!cookie) return;
+
+            try {
+                const response = await fetch(`/token/${encodeURIComponent(cookie)}`, {
+                    headers: { 'X-API-Key': userProfile.apiKey }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const tokensText = Object.entries(data.tokens)
+                        .filter(([_, token]) => token)
+                        .map(([key, token]) => `${key}: ${token}`)
+                        .join('\n');
+                    
+                    navigator.clipboard.writeText(tokensText);
+                    alert('All tokens copied to clipboard!');
+                }
+            } catch (error) {
+                alert('Failed to copy tokens');
+            }
+        });
+
+        // Initialize
+        loadProfile();
+        loadAnnouncements();
+        setInterval(loadProfile, 30000);
+    </script>
+</body>
+</html>
