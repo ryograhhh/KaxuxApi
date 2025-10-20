@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - KazuX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background">
+    <!-- Navigation -->
+    <nav class="border-b border-border bg-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-6 h-6 text-red-600"></i>
+                    <span class="text-xl font-bold text-foreground">KazuX Admin</span>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <button id="profileDropdownBtn" class="flex items-center space-x-2 hover:bg-secondary p-1.5 sm:p-2 rounded-md">
+                        <img id="headerProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-gray-200">
+                        <i data-lucide="chevron-down" class="w-4 h-4 hidden sm:block"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Dropdown Menu -->
+        <div id="profileDropdown" class="hidden absolute right-4 mt-2 w-64 bg-white border border-border rounded-lg shadow-lg z-50">
+            <div class="p-4 border-b border-border">
+                <div class="flex items-center space-x-3">
+                    <img id="dropdownProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                    <div class="flex-1 min-w-0">
+                        <p id="dropdownUsername" class="font-semibold text-foreground truncate">Loading...</p>
+                        <p class="text-xs text-red-600 font-medium">ADMIN</p>
+                    </div>
+                </div>
+            </div>
+            <div class="py-2">
+                <a href="/index.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="home" class="w-4 h-4"></i>
+                    <span>User View</span>
+                </a>
+                <a href="/profile.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="user" class="w-4 h-4"></i>
+                    <span>Profile</span>
+                </a>
+                <hr class="my-2 border-border">
+                <button id="logoutBtn" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-red-50 w-full text-left text-red-600 text-sm">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Total Users</span>
+                    <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-foreground" id="totalUsers">0</div>
+            </div>
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Active Users</span>
+                    <i data-lucide="user-check" class="w-4 h-4 text-green-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-green-600" id="activeUsers">0</div>
+            </div>
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Total Requests</span>
+                    <i data-lucide="activity" class="w-4 h-4 text-purple-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-foreground" id="totalRequests">0</div>
+            </div>
+            <div class="bg-white border border-border rounded-lg p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm text-muted-foreground">Success Rate</span>
+                    <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i>
+                </div>
+                <div class="text-3xl font-bold text-emerald-600" id="successRate">0%</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white border border-border rounded-lg mb-8">
+            <div class="border-b border-border">
+                <div class="flex overflow-x-auto">
+                    <button onclick="switchTab('users')" id="tab-users" class="px-4 sm:px-6 py-3 text-sm font-medium border-b-2 border-primary text-primary whitespace-nowrap">
+                        <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>Users
+                    </button>
+                    <button onclick="switchTab('announcements')" id="tab-announcements" class="px-4 sm:px-6 py-3 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground whitespace-nowrap">
+                        <i data-lucide="megaphone" class="w-4 h-4 inline mr-2"></i>Announcements
+                    </button>
+                    <button onclick="switchTab('logs')" id="tab-logs" class="px-4 sm:px-6 py-3 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground whitespace-nowrap">
+                        <i data-lucide="file-text" class="w-4 h-4 inline mr-2"></i>Logs
+                    </button>
+                    <button onclick="switchTab('top-users')" id="tab-top-users" class="px-4 sm:px-6 py-3 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground whitespace-nowrap">
+                        <i data-lucide="trophy" class="w-4 h-4 inline mr-2"></i>Top Users
+                    </button>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="content-users" class="p-4 sm:p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h3 class="text-lg font-semibold text-foreground">User Management</h3>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <input type="text" id="userSearch" placeholder="Search users..." class="flex-1 sm:flex-none sm:w-64 px-3 py-2 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                        <button onclick="loadUsers()" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm whitespace-nowrap">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 inline"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-secondary">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase">User</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase hidden sm:table-cell">Requests</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase hidden md:table-cell">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="divide-y divide-border">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Announcements Tab -->
+            <div id="content-announcements" class="p-4 sm:p-6 hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-foreground mb-4">Create Announcement</h3>
+                    <form id="createAnnouncementForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Title</label>
+                            <input type="text" id="announcementTitle" required class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Message</label>
+                            <textarea id="announcementMessage" rows="3" required class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Type</label>
+                                <select id="announcementType" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                                    <option value="info">Info</option>
+                                    <option value="success">Success</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="error">Error</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-foreground mb-2">Expires At (Optional)</label>
+                                <input type="datetime-local" id="announcementExpires" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                            </div>
+                        </div>
+                        <div id="announcementMessage" class="hidden"></div>
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm font-medium">
+                            <i data-lucide="send" class="w-4 h-4 inline mr-2"></i>Create Announcement
+                        </button>
+                    </form>
+                </div>
+                <hr class="my-6 border-border">
+                <h3 class="text-lg font-semibold text-foreground mb-4">All Announcements</h3>
+                <div id="announcementsList" class="space-y-3">
+                    <!-- Announcements will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="content-logs" class="p-4 sm:p-6 hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h3 class="text-lg font-semibold text-foreground">Request Logs</h3>
+                    <button onclick="loadLogs()" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>Refresh
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-secondary">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase">User</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase hidden md:table-cell">Endpoint</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-foreground uppercase hidden lg:table-cell">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTableBody" class="divide-y divide-border">
+                            <!-- Logs will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Users Tab -->
+            <div id="content-top-users" class="p-4 sm:p-6 hidden">
+                <h3 class="text-lg font-semibold text-foreground mb-6">Top 10 Active Users</h3>
+                <div id="topUsersList" class="space-y-3">
+                    <!-- Top users will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Ban User Modal -->
+    <div id="banModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 class="text-lg font-semibold text-foreground mb-4">Ban User</h3>
+            <input type="hidden" id="banUserId">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-foreground mb-2">Ban Reason</label>
+                <textarea id="banReason" rows="3" required class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm" placeholder="Enter reason for banning..."></textarea>
+            </div>
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeBanModal()" class="px-4 py-2 border border-border rounded-md hover:bg-secondary transition text-sm">Cancel</button>
+                <button onclick="confirmBan()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm">Ban User</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const token = localStorage.getItem('sessionToken');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        let currentTab = 'users';
+        let allUsers = [];
+
+        // Profile dropdown toggle
+        document.getElementById('profileDropdownBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('profileDropdown').classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', () => {
+            document.getElementById('profileDropdown').classList.add('hidden');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { 
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            localStorage.removeItem('sessionToken');
+            window.location.href = '/login.html';
+        });
+
+        function getProfilePictureUrl(picture) {
+            if (!picture || picture === '') return '/uploads/profiles/default.png';
+            if (picture.startsWith('http://') || picture.startsWith('https://')) return picture;
+            if (picture.startsWith('/')) return picture;
+            return '/' + picture;
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('sessionToken');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    throw new Error('Failed to fetch profile');
+                }
+                
+                const data = await response.json();
+                const profile = data.data;
+                
+                if (!profile.isAdmin) {
+                    window.location.href = '/index.html';
+                    return;
+                }
+                
+                const profilePicUrl = getProfilePictureUrl(profile.profilePicture);
+                document.getElementById('headerProfilePic').src = profilePicUrl;
+                document.getElementById('dropdownProfilePic').src = profilePicUrl;
+                document.getElementById('dropdownUsername').textContent = profile.username;
+
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Profile error:', error);
+            }
+        }
+
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/admin/statistics', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.data.overview;
+                    document.getElementById('totalUsers').textContent = stats.totalUsers;
+                    document.getElementById('activeUsers').textContent = stats.activeUsers;
+                    document.getElementById('totalRequests').textContent = stats.totalRequests;
+                    document.getElementById('successRate').textContent = stats.successRate;
+                }
+            } catch (error) {
+                console.error('Statistics error:', error);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/admin/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    allUsers = data.data;
+                    renderUsers(allUsers);
+                }
+            } catch (error) {
+                console.error('Users error:', error);
+            }
+        }
+
+        document.getElementById('userSearch').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            const filtered = allUsers.filter(user => 
+                user.username.toLowerCase().includes(search)
+            );
+            renderUsers(filtered);
+        });
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = users.map(user => `
+                <tr class="${user.isBanned ? 'bg-red-50' : ''}">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center space-x-3">
+                            <img src="${getProfilePictureUrl(user.profilePicture)}" alt="${user.username}" class="w-8 h-8 rounded-full object-cover">
+                            <div>
+                                <div class="font-medium text-sm">${user.username}</div>
+                                <div class="text-xs text-muted-foreground">${user.gender}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-sm hidden sm:table-cell">${user.requestCount}</td>
+                    <td class="px-4 py-3 hidden md:table-cell">
+                        ${user.isBanned ? 
+                            '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Banned</span>' :
+                            user.isActive ? 
+                                '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Active</span>' :
+                                '<span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Inactive</span>'
+                        }
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex gap-1">
+                            ${!user.isAdmin ? `
+                                ${!user.isBanned ? 
+                                    `<button onclick="toggleActive('${user._id}')" class="p-1 hover:bg-secondary rounded" title="Toggle Active">
+                                        <i data-lucide="${user.isActive ? 'toggle-right' : 'toggle-left'}" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="openBanModal('${user._id}')" class="p-1 hover:bg-red-50 rounded text-red-600" title="Ban">
+                                        <i data-lucide="ban" class="w-4 h-4"></i>
+                                    </button>` :
+                                    `<button onclick="unbanUser('${user._id}')" class="p-1 hover:bg-green-50 rounded text-green-600" title="Unban">
+                                        <i data-lucide="unlock" class="w-4 h-4"></i>
+                                    </button>`
+                                }
+                                <button onclick="deleteUser('${user._id}', '${user.username}')" class="p-1 hover:bg-red-50 rounded text-red-600" title="Delete">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            ` : '<span class="text-xs text-muted-foreground">Admin</span>'}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        async function toggleActive(userId) {
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/toggle-active`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    loadUsers();
+                    loadStatistics();
+                }
+            } catch (error) {
+                console.error('Toggle active error:', error);
+            }
+        }
+
+        function openBanModal(userId) {
+            document.getElementById('banUserId').value = userId;
+            document.getElementById('banModal').classList.remove('hidden');
+        }
+
+        function closeBanModal() {
+            document.getElementById('banModal').classList.add('hidden');
+            document.getElementById('banReason').value = '';
+        }
+
+        async function confirmBan() {
+            const userId = document.getElementById('banUserId').value;
+            const reason = document.getElementById('banReason').value.trim();
+            
+            if (!reason) {
+                alert('Please enter a ban reason');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/ban`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason })
+                });
+                if (response.ok) {
+                    closeBanModal();
+                    loadUsers();
+                    loadStatistics();
+                }
+            } catch (error) {
+                console.error('Ban error:', error);
+            }
+        }
+
+        async function unbanUser(userId) {
+            if (!confirm('Unban this user?')) return;
+            
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/unban`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    loadUsers();
+                    loadStatistics();
+                }
+            } catch (error) {
+                console.error('Unban error:', error);
+            }
+        }
+
+        async function deleteUser(userId, username) {
+            if (!confirm(`Delete user "${username}"? This action cannot be undone.`)) return;
+            
+            try {
+                const response = await fetch(`/api/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    loadUsers();
+                    loadStatistics();
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+            }
+        }
+
+        document.getElementById('createAnnouncementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('announcementTitle').value;
+            const message = document.getElementById('announcementMessage').value;
+            const type = document.getElementById('announcementType').value;
+            const expiresAt = document.getElementById('announcementExpires').value || null;
+
+            try {
+                const response = await fetch('/api/admin/announcements', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, message, type, expiresAt })
+                });
+
+                if (response.ok) {
+                    e.target.reset();
+                    loadAnnouncements();
+                    alert('Announcement created successfully!');
+                }
+            } catch (error) {
+                console.error('Create announcement error:', error);
+            }
+        });
+
+        async function loadAnnouncements() {
+            try {
+                const response = await fetch('/api/admin/announcements', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const typeColors = {
+                        info: 'bg-blue-50 border-blue-200',
+                        warning: 'bg-yellow-50 border-yellow-200',
+                        success: 'bg-green-50 border-green-200',
+                        error: 'bg-red-50 border-red-200'
+                    };
+                    
+                    document.getElementById('announcementsList').innerHTML = data.data.map(ann => `
+                        <div class="p-4 border rounded-md ${typeColors[ann.type]} ${!ann.isActive ? 'opacity-50' : ''}">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-semibold">${ann.title}</h4>
+                                <div class="flex gap-1">
+                                    <button onclick="toggleAnnouncement('${ann._id}')" class="p-1 hover:bg-white rounded" title="${ann.isActive ? 'Deactivate' : 'Activate'}">
+                                        <i data-lucide="${ann.isActive ? 'eye' : 'eye-off'}" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="deleteAnnouncement('${ann._id}')" class="p-1 hover:bg-white rounded text-red-600" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm mb-2">${ann.message}</p>
+                            <p class="text-xs opacity-75">By ${ann.createdByUsername} • ${new Date(ann.createdAt).toLocaleString()}</p>
+                        </div>
+                    `).join('');
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                console.error('Announcements error:', error);
+            }
+        }
+
+        async function toggleAnnouncement(id) {
+            try {
+                const response = await fetch(`/api/admin/announcements/${id}/toggle`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    loadAnnouncements();
+                }
+            } catch (error) {
+                console.error('Toggle announcement error:', error);
+            }
+        }
+
+        async function deleteAnnouncement(id) {
+            if (!confirm('Delete this announcement?')) return;
+            
+            try {
+                const response = await fetch(`/api/admin/announcements/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    loadAnnouncements();
+                }
+            } catch (error) {
+                console.error('Delete announcement error:', error);
+            }
+        }
+
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/admin/logs?limit=50', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.getElementById('logsTableBody');
+                    tbody.innerHTML = data.data.map(log => `
+                        <tr>
+                            <td class="px-4 py-3 text-sm">${log.username || 'Unknown'}</td>
+                            <td class="px-4 py-3 text-sm hidden md:table-cell font-mono text-xs">${log.endpoint || '-'}</td>
+                            <td class="px-4 py-3">
+                                ${log.success ? 
+                                    '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Success</span>' :
+                                    '<span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Failed</span>'
+                                }
+                            </td>
+                            <td class="px-4 py-3 text-xs text-muted-foreground hidden lg:table-cell">${new Date(log.timestamp).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Logs error:', error);
+            }
+        }
+
+        async function loadTopUsers() {
+            try {
+                const response = await fetch('/api/admin/statistics', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success && data.data.topUsers) {
+                    document.getElementById('topUsersList').innerHTML = data.data.topUsers.map((user, index) => `
+                        <div class="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-secondary transition">
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full ${index < 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-secondary'} font-bold text-sm">
+                                    ${index + 1}
+                                </div>
+                                <img src="${getProfilePictureUrl(user.profilePicture)}" alt="${user.username}" class="w-10 h-10 rounded-full object-cover">
+                                <div>
+                                    <div class="font-medium">${user.username}</div>
+                                    <div class="text-xs text-muted-foreground">Last active: ${user.lastRequest ? new Date(user.lastRequest).toLocaleDateString() : 'Never'}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-lg">${user.requestCount}</div>
+                                <div class="text-xs text-muted-foreground">requests</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Top users error:', error);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('border-primary', 'text-primary');
+                btn.classList.add('border-transparent', 'text-muted-foreground');
+            });
+            document.getElementById(`tab-${tab}`).classList.remove('border-transparent', 'text-muted-foreground');
+            document.getElementById(`tab-${tab}`).classList.add('border-primary', 'text-primary');
+            
+            // Update content
+            document.querySelectorAll('[id^="content-"]').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            
+            // Load data for the tab
+            if (tab === 'users') loadUsers();
+            else if (tab === 'announcements') loadAnnouncements();
+            else if (tab === 'logs') loadLogs();
+            else if (tab === 'top-users') loadTopUsers();
+        }
+
+        // Initialize
+        loadProfile();
+        loadStatistics();
+        loadUsers();
+        setInterval(loadStatistics, 30000);
+    </script>
+</body>
+</html>
