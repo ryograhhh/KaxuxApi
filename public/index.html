@@ -9,6 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { font-family: 'Inter', sans-serif; }
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        .token-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .token-card {
+            transition: all 0.2s ease;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -43,9 +54,15 @@
     <nav class="border-b border-border bg-white sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="share-2" class="w-6 h-6"></i>
-                    <span class="text-xl font-bold text-foreground">KazuX</span>
+                <div class="flex items-center space-x-4 sm:space-x-8">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="share-2" class="w-6 h-6"></i>
+                        <span class="text-xl font-bold text-foreground">KazuX</span>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="/" class="px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary rounded-md">Home</a>
+                        <a href="/documentation.html" class="px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary rounded-md">Documentation</a>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <!-- Notifications -->
@@ -70,7 +87,7 @@
                     <img id="dropdownProfilePic" src="/uploads/profiles/default.png" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
                     <div class="flex-1 min-w-0">
                         <p id="dropdownUsername" class="font-semibold text-foreground truncate">Loading...</p>
-                        <p class="text-xs text-muted-foreground">API User</p>
+                        <p class="text-xs text-muted-foreground">Member</p>
                     </div>
                 </div>
             </div>
@@ -82,6 +99,10 @@
                 <a href="/stats.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
                     <i data-lucide="bar-chart" class="w-4 h-4"></i>
                     <span>Statistics</span>
+                </a>
+                <a href="/documentation.html" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-secondary text-sm">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    <span>Documentation</span>
                 </a>
                 <hr class="my-2 border-border">
                 <button id="logoutBtn" class="flex items-center space-x-3 px-4 py-2.5 hover:bg-red-50 w-full text-left text-red-600 text-sm">
@@ -141,17 +162,6 @@
                 </button>
             </div>
             
-            <div id="tokenResults" class="mt-6 hidden">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-semibold text-foreground">Generated Tokens</h4>
-                    <button id="copyAllTokens" class="text-sm text-primary hover:underline flex items-center gap-1">
-                        <i data-lucide="copy" class="w-4 h-4"></i>
-                        Copy All
-                    </button>
-                </div>
-                <div id="tokensList" class="space-y-3"></div>
-            </div>
-            
             <div id="tokenError" class="mt-4 hidden p-4 bg-red-50 border border-red-200 rounded-md">
                 <p class="text-sm text-red-800"></p>
             </div>
@@ -167,6 +177,52 @@
         </div>
     </main>
 
+    <!-- Token Selection Modal -->
+    <div id="tokenModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="modal-overlay fixed inset-0 transition-opacity" onclick="closeTokenModal()"></div>
+            
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                                <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-foreground">Tokens Generated Successfully!</h3>
+                                <p class="text-sm text-muted-foreground">Select a token type to copy</p>
+                            </div>
+                        </div>
+                        <button onclick="closeTokenModal()" class="text-muted-foreground hover:text-foreground">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-96 overflow-y-auto" id="tokenCardsContainer">
+                        <!-- Token cards will be inserted here -->
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col sm:flex-row gap-2 justify-between items-center">
+                    <p class="text-xs text-muted-foreground">Click on any token to copy it instantly</p>
+                    <button onclick="copyAllTokensFromModal()" class="w-full sm:w-auto px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm flex items-center justify-center space-x-2">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span>Copy All Tokens</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="hidden fixed top-20 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-3 animate-fade-in">
+        <i data-lucide="check-circle" class="w-5 h-5"></i>
+        <span id="toastMessage">Token copied successfully!</span>
+    </div>
+
     <script>
         lucide.createIcons();
 
@@ -176,6 +232,7 @@
         }
 
         let userProfile = null;
+        let generatedTokens = null;
 
         // Profile dropdown toggle
         document.getElementById('profileDropdownBtn').addEventListener('click', (e) => {
@@ -364,20 +421,123 @@
             }
         }
 
+        // Show success toast
+        function showSuccessToast(message) {
+            const toast = document.getElementById('successToast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Open token modal
+        function openTokenModal(tokens) {
+            generatedTokens = tokens;
+            const container = document.getElementById('tokenCardsContainer');
+            const tokenTypes = {
+                'EAAAAU': { name: 'EAAAAU', appId: '350685531728', color: 'blue' },
+                'EAAD': { name: 'EAAD', appId: '256002347743983', color: 'green' },
+                'EAAAAAY': { name: 'EAAAAAY', appId: '6628568379', color: 'purple' },
+                'EAADY': { name: 'EAADY', appId: '237759909591655', color: 'pink' },
+                'EAAB': { name: 'EAAB', appId: '121876164619130', color: 'indigo' },
+                'EAAG': { name: 'EAAG', appId: '436761779744620', color: 'yellow' },
+                'EAAC4': { name: 'EAAC4', appId: '202805033077166', color: 'red' },
+                'EAAC2': { name: 'EAAC2', appId: '200424423651082', color: 'teal' },
+                'EAACW': { name: 'EAACW', appId: '165907476854626', color: 'orange' },
+                'EAACn': { name: 'EAACn', appId: '184182168294603', color: 'cyan' }
+            };
+
+            const colorClasses = {
+                blue: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+                green: 'bg-green-50 border-green-200 hover:bg-green-100',
+                purple: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
+                pink: 'bg-pink-50 border-pink-200 hover:bg-pink-100',
+                indigo: 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100',
+                yellow: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100',
+                red: 'bg-red-50 border-red-200 hover:bg-red-100',
+                teal: 'bg-teal-50 border-teal-200 hover:bg-teal-100',
+                orange: 'bg-orange-50 border-orange-200 hover:bg-orange-100',
+                cyan: 'bg-cyan-50 border-cyan-200 hover:bg-cyan-100'
+            };
+            
+            container.innerHTML = Object.entries(tokens).map(([key, tokenValue]) => {
+                const info = tokenTypes[key] || { name: key, appId: 'Unknown', color: 'gray' };
+                const colorClass = colorClasses[info.color] || 'bg-gray-50 border-gray-200 hover:bg-gray-100';
+                const hasToken = tokenValue !== null && tokenValue !== '';
+                
+                return `
+                    <div class="token-card p-4 border rounded-lg cursor-pointer ${colorClass} ${!hasToken ? 'opacity-50' : ''}" 
+                         ${hasToken ? `onclick="copyTokenFromModal('${key}', '${tokenValue}')"` : ''}>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-bold text-sm text-foreground">${info.name}</span>
+                            ${hasToken ? `<i data-lucide="copy" class="w-4 h-4 text-muted-foreground"></i>` : `<i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i>`}
+                        </div>
+                        <p class="text-xs text-muted-foreground mb-2">App ID: ${info.appId}</p>
+                        <div class="text-xs font-mono ${hasToken ? 'text-foreground truncate' : 'text-red-600'}">
+                            ${hasToken ? tokenValue.substring(0, 30) + '...' : 'Failed to generate'}
+                        </div>
+                        ${hasToken ? '<p class="text-xs text-muted-foreground mt-2">Click to copy</p>' : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('tokenModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // Close token modal
+        function closeTokenModal() {
+            document.getElementById('tokenModal').classList.add('hidden');
+            generatedTokens = null;
+        }
+
+        // Copy token from modal
+        window.copyTokenFromModal = function(tokenType, tokenValue) {
+            navigator.clipboard.writeText(tokenValue).then(() => {
+                showSuccessToast(`${tokenType} token copied successfully!`);
+            }).catch(() => {
+                showSuccessToast('Failed to copy token');
+            });
+        };
+
+        // Copy all tokens from modal
+        window.copyAllTokensFromModal = function() {
+            if (!generatedTokens) return;
+            
+            const tokensText = Object.entries(generatedTokens)
+                .filter(([_, token]) => token)
+                .map(([key, token]) => `${key}: ${token}`)
+                .join('\n');
+            
+            navigator.clipboard.writeText(tokensText).then(() => {
+                showSuccessToast('All tokens copied successfully!');
+            }).catch(() => {
+                showSuccessToast('Failed to copy tokens');
+            });
+        };
+
         // Generate tokens
         document.getElementById('generateBtn').addEventListener('click', async () => {
             const cookie = document.getElementById('cookieInput').value.trim();
             const errorDiv = document.getElementById('tokenError');
-            const resultsDiv = document.getElementById('tokenResults');
+            const btn = document.getElementById('generateBtn');
             
             errorDiv.classList.add('hidden');
-            resultsDiv.classList.add('hidden');
             
             if (!cookie) {
                 errorDiv.querySelector('p').textContent = 'Please enter a Facebook cookie';
                 errorDiv.classList.remove('hidden');
                 return;
             }
+
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Generating...</span>';
+            lucide.createIcons();
 
             try {
                 const response = await fetch(`/token/${encodeURIComponent(cookie)}`, {
@@ -392,61 +552,17 @@
                     return;
                 }
 
-                const tokens = data.tokens;
-                const tokensList = document.getElementById('tokensList');
-                
-                tokensList.innerHTML = Object.entries(tokens).map(([key, token]) => `
-                    <div class="p-3 bg-secondary rounded-md">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="font-semibold text-sm">${key}</span>
-                            ${token ? `<button onclick="copyToken('${token}')" class="text-xs text-primary hover:underline flex items-center gap-1">
-                                <i data-lucide="copy" class="w-3 h-3"></i>
-                                Copy
-                            </button>` : ''}
-                        </div>
-                        <div class="text-xs font-mono ${token ? 'text-foreground' : 'text-red-600'}">
-                            ${token || 'Failed to generate'}
-                        </div>
-                    </div>
-                `).join('');
-                
-                resultsDiv.classList.remove('hidden');
-                lucide.createIcons();
+                // Open modal with tokens
+                openTokenModal(data.tokens);
                 loadProfile(); // Refresh request count
             } catch (error) {
                 errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
                 errorDiv.classList.remove('hidden');
-            }
-        });
-
-        // Copy token
-        window.copyToken = function(token) {
-            navigator.clipboard.writeText(token);
-            alert('Token copied to clipboard!');
-        };
-
-        // Copy all tokens
-        document.getElementById('copyAllTokens').addEventListener('click', async () => {
-            const cookie = document.getElementById('cookieInput').value.trim();
-            if (!cookie) return;
-
-            try {
-                const response = await fetch(`/token/${encodeURIComponent(cookie)}`, {
-                    headers: { 'X-API-Key': userProfile.apiKey }
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    const tokensText = Object.entries(data.tokens)
-                        .filter(([_, token]) => token)
-                        .map(([key, token]) => `${key}: ${token}`)
-                        .join('\n');
-                    
-                    navigator.clipboard.writeText(tokensText);
-                    alert('All tokens copied to clipboard!');
-                }
-            } catch (error) {
-                alert('Failed to copy tokens');
+            } finally {
+                // Reset button
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i><span>Generate Tokens</span>';
+                lucide.createIcons();
             }
         });
 
