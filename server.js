@@ -54,6 +54,7 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, enum: ['male', 'female', 'other'], required: true },
   birthday: { type: Date, required: true },
   profilePicture: { type: String, default: null },
+  verifiedBadge: { type: String, default: null },
   apiKey: { type: String, required: true, unique: true },
   requestCount: { type: Number, default: 0 },
   lastRequest: { type: Date },
@@ -101,6 +102,10 @@ const announcementSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdByUsername: { type: String, required: true },
+  createdByProfilePicture: { type: String, default: null },
+  createdByVerifiedBadge: { type: String, default: null },
+  createdByIsAdmin: { type: Boolean, default: false },
+  createdByTag: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   expiresAt: { type: Date, default: null }
 });
@@ -169,6 +174,7 @@ async function createAdminAccount() {
         gender: 'male',
         birthday: new Date('2008-05-02'),
         profilePicture: 'https://i.imgur.com/TKCQWAV.jpeg',
+        verifiedBadge: 'https://i.imgur.com/ap56zib.jpeg',
         apiKey: generateApiKey(),
         isAdmin: true
       });
@@ -176,8 +182,11 @@ async function createAdminAccount() {
     } else {
       if (!adminExists.profilePicture) {
         adminExists.profilePicture = 'https://i.imgur.com/TKCQWAV.jpeg';
-        await adminExists.save();
       }
+      if (!adminExists.verifiedBadge && adminExists.isAdmin) {
+        adminExists.verifiedBadge = 'https://i.imgur.com/ap56zib.jpeg';
+      }
+      await adminExists.save();
       console.log('✅ Admin account already exists');
     }
   } catch (error) {
@@ -524,6 +533,7 @@ app.post('/api/auth/login', async (req, res) => {
           gender: user.gender,
           birthday: user.birthday,
           profilePicture: user.profilePicture,
+          verifiedBadge: user.verifiedBadge,
           apiKey: user.apiKey,
           isAdmin: user.isAdmin,
           createdAt: user.createdAt
@@ -568,6 +578,7 @@ app.get('/api/auth/me', authenticateSession, async (req, res) => {
         gender: req.user.gender,
         birthday: req.user.birthday,
         profilePicture: req.user.profilePicture,
+        verifiedBadge: req.user.verifiedBadge,
         apiKey: req.user.apiKey,
         requestCount: req.user.requestCount,
         lastRequest: req.user.lastRequest,
@@ -594,6 +605,7 @@ app.get('/api/profile', authenticateSession, async (req, res) => {
         gender: req.user.gender,
         birthday: req.user.birthday,
         profilePicture: req.user.profilePicture,
+        verifiedBadge: req.user.verifiedBadge,
         apiKey: req.user.apiKey,
         requestCount: req.user.requestCount,
         lastRequest: req.user.lastRequest,
@@ -637,6 +649,38 @@ app.post('/api/profile/upload-picture', authenticateSession, upload.single('prof
     res.status(500).json({
       success: false,
       error: "Failed to upload profile picture: " + error.message
+    });
+  }
+});
+
+// NEW: Upload verified badge (Admin only)
+app.post('/api/profile/upload-verified-badge', authenticateAdmin, upload.single('verifiedBadge'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "No file uploaded"
+      });
+    }
+
+    // Upload to Imgur
+    const imgurUrl = await uploadBufferToImgur(req.file.buffer, req.file.originalname);
+
+    // Save Imgur URL to database
+    req.user.verifiedBadge = imgurUrl;
+    await req.user.save();
+
+    res.json({
+      success: true,
+      message: "Verified badge uploaded successfully to Imgur",
+      data: {
+        verifiedBadge: imgurUrl
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to upload verified badge: " + error.message
     });
   }
 });
@@ -689,7 +733,8 @@ app.patch('/api/profile/update', authenticateSession, async (req, res) => {
         username: req.user.username,
         gender: req.user.gender,
         birthday: req.user.birthday,
-        profilePicture: req.user.profilePicture
+        profilePicture: req.user.profilePicture,
+        verifiedBadge: req.user.verifiedBadge
       }
     });
   } catch (error) {
@@ -881,6 +926,7 @@ app.get('/api/stats', authenticateSession, async (req, res) => {
           gender: req.user.gender,
           birthday: req.user.birthday,
           profilePicture: req.user.profilePicture,
+          verifiedBadge: req.user.verifiedBadge,
           apiKey: req.user.apiKey,
           createdAt: req.user.createdAt
         },
@@ -964,7 +1010,7 @@ app.get('/api/admin/statistics', authenticateAdmin, async (req, res) => {
     ]);
 
     const topUsers = await User.find()
-      .select('username requestCount lastRequest profilePicture')
+      .select('username requestCount lastRequest profilePicture verifiedBadge')
       .sort({ requestCount: -1 })
       .limit(10);
 
@@ -1148,7 +1194,6 @@ app.delete('/api/admin/users/:userId', authenticateAdmin, async (req, res) => {
       });
     }
 
-    // No need to delete local files since we're using Imgur now
     await User.findByIdAndDelete(req.params.userId);
     await RequestLog.deleteMany({ userId: user._id });
     await Session.deleteMany({ userId: user._id });
@@ -1177,13 +1222,19 @@ app.post('/api/admin/announcements', authenticateAdmin, async (req, res) => {
       });
     }
 
+    const adminTag = `@${req.user.username}`;
+
     const announcement = await Announcement.create({
       title,
       message,
       type: type || 'info',
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       createdBy: req.user._id,
-      createdByUsername: req.user.username
+      createdByUsername: req.user.username,
+      createdByProfilePicture: req.user.profilePicture,
+      createdByVerifiedBadge: req.user.verifiedBadge,
+      createdByIsAdmin: req.user.isAdmin,
+      createdByTag: adminTag
     });
 
     const users = await User.find({ isActive: true });
@@ -1427,7 +1478,8 @@ print(response.json())`
         "Your API key usage is tracked and logged",
         "Respect Facebook's terms of service when using tokens",
         "Tokens are generated in real-time and not stored on our servers",
-        "Profile pictures are now stored on Imgur for persistence across deployments"
+        "Profile pictures and verified badges are stored on Imgur for persistence across deployments",
+        "Admin users have verified badges shown in announcements"
       ]
     }
   });
