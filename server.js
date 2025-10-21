@@ -5,28 +5,15 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { uploadToImgur } = require("imgur-link");
 const app = express();
 const port = process.env.PORT || 8080;
 
 const axios = require('axios');
 const qs = require('qs');
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'public', 'uploads', 'profiles');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Configure Multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure Multer for temporary file storage (will upload to Imgur)
+const storage = multer.memoryStorage(); // Store in memory instead of disk
 
 const fileFilter = (req, file, cb) => {
   if (!file.mimetype.startsWith('image/')) {
@@ -43,7 +30,7 @@ const upload = multer({
   }
 });
 
-// MongoDB Connection - FIXED: Set strict to false
+// MongoDB Connection
 const uri = "mongodb+srv://biarpogihehe:XaneKath1@cluster0.beucph6.mongodb.net/facebook-token-api?retryWrites=true&w=majority&appName=Cluster0";
 const clientOptions = { 
   serverApi: { 
@@ -144,6 +131,30 @@ function generateApiKey() {
 // Generate Session Token
 function generateSessionToken() {
   return crypto.randomBytes(48).toString('hex');
+}
+
+// Helper function to upload buffer to Imgur
+async function uploadBufferToImgur(buffer, filename) {
+  try {
+    // Save buffer temporarily
+    const tempPath = path.join(__dirname, 'temp_' + filename);
+    fs.writeFileSync(tempPath, buffer);
+    
+    // Upload to Imgur
+    const imgurUrl = await uploadToImgur(tempPath);
+    
+    // Delete temporary file
+    fs.unlinkSync(tempPath);
+    
+    return imgurUrl;
+  } catch (error) {
+    // Clean up temp file if it exists
+    const tempPath = path.join(__dirname, 'temp_' + filename);
+    if (fs.existsSync(tempPath)) {
+      fs.unlinkSync(tempPath);
+    }
+    throw error;
+  }
 }
 
 // Create Admin Account
@@ -598,6 +609,7 @@ app.get('/api/profile', authenticateSession, async (req, res) => {
   }
 });
 
+// UPDATED: Profile picture upload with Imgur
 app.post('/api/profile/upload-picture', authenticateSession, upload.single('profilePicture'), async (req, res) => {
   try {
     if (!req.file) {
@@ -607,32 +619,21 @@ app.post('/api/profile/upload-picture', authenticateSession, upload.single('prof
       });
     }
 
-    if (req.user.profilePicture && !req.user.profilePicture.startsWith('http')) {
-      const oldPicturePath = path.join(__dirname, 'public', req.user.profilePicture);
-      if (fs.existsSync(oldPicturePath)) {
-        fs.unlinkSync(oldPicturePath);
-      }
-    }
+    // Upload to Imgur
+    const imgurUrl = await uploadBufferToImgur(req.file.buffer, req.file.originalname);
 
-    const profilePicturePath = '/uploads/profiles/' + req.file.filename;
-    req.user.profilePicture = profilePicturePath;
+    // Save Imgur URL to database
+    req.user.profilePicture = imgurUrl;
     await req.user.save();
 
     res.json({
       success: true,
-      message: "Profile picture uploaded successfully",
+      message: "Profile picture uploaded successfully to Imgur",
       data: {
-        profilePicture: profilePicturePath
+        profilePicture: imgurUrl
       }
     });
   } catch (error) {
-    if (req.file) {
-      const filePath = path.join(uploadsDir, req.file.filename);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-    
     res.status(500).json({
       success: false,
       error: "Failed to upload profile picture: " + error.message
@@ -649,13 +650,7 @@ app.delete('/api/profile/delete-picture', authenticateSession, async (req, res) 
       });
     }
 
-    if (!req.user.profilePicture.startsWith('http')) {
-      const picturePath = path.join(__dirname, 'public', req.user.profilePicture);
-      if (fs.existsSync(picturePath)) {
-        fs.unlinkSync(picturePath);
-      }
-    }
-
+    // Just remove the URL from database (Imgur links remain accessible)
     req.user.profilePicture = null;
     await req.user.save();
 
@@ -1153,13 +1148,7 @@ app.delete('/api/admin/users/:userId', authenticateAdmin, async (req, res) => {
       });
     }
 
-    if (user.profilePicture && !user.profilePicture.startsWith('http')) {
-      const picturePath = path.join(__dirname, 'public', user.profilePicture);
-      if (fs.existsSync(picturePath)) {
-        fs.unlinkSync(picturePath);
-      }
-    }
-
+    // No need to delete local files since we're using Imgur now
     await User.findByIdAndDelete(req.params.userId);
     await RequestLog.deleteMany({ userId: user._id });
     await Session.deleteMany({ userId: user._id });
@@ -1288,7 +1277,7 @@ app.patch('/api/admin/announcements/:announcementId/toggle', authenticateAdmin, 
   }
 });
 
-// TOKEN ENDPOINT - FIXED
+// TOKEN ENDPOINT
 app.get('/token/:cookie', validateApiKey, async (req, res) => {
   const cookie = req.params.cookie;
   
@@ -1343,189 +1332,103 @@ app.get('/api/documentation', (req, res) => {
   res.json({
     success: true,
     documentation: {
-      title: "KazuX API Documentation",
+      title: "KazuX API - Facebook Token Generator",
       version: "1.0.0",
+      description: "Generate Facebook access tokens from cookies",
       baseUrl: req.protocol + '://' + req.get('host'),
-      endpoints: {
-        authentication: {
-          signup: {
-            method: "POST",
-            path: "/api/auth/signup",
-            description: "Create a new user account",
-            body: {
-              username: "string (required)",
-              password: "string (required)",
-              gender: "string (required) - male, female, or other",
-              birthday: "string (required) - YYYY-MM-DD format"
-            }
-          },
-          login: {
-            method: "POST",
-            path: "/api/auth/login",
-            description: "Login to your account",
-            body: {
-              username: "string (required)",
-              password: "string (required)"
-            }
-          },
-          logout: {
-            method: "POST",
-            path: "/api/auth/logout",
-            description: "Logout from your account",
-            headers: {
-              Authorization: "Bearer {session_token}"
-            }
-          },
-          me: {
-            method: "GET",
-            path: "/api/auth/me",
-            description: "Get current user information with unread notification count"
+      authentication: {
+        method: "API Key",
+        description: "All requests require an API key. Sign up on the website to get your API key.",
+        how_to_use: [
+          "1. Create an account on the website",
+          "2. Get your API key from your profile",
+          "3. Include the API key in your requests using one of these methods:",
+          "   - Header: X-API-Key: your_api_key",
+          "   - Query parameter: ?apikey=your_api_key"
+        ]
+      },
+      endpoint: {
+        path: "/token/:cookie",
+        method: "GET",
+        description: "Generate Facebook access tokens from your Facebook cookie",
+        parameters: {
+          cookie: {
+            type: "string",
+            location: "path",
+            required: true,
+            description: "Your Facebook cookie string (must contain c_user)"
           }
         },
-        profile: {
-          getProfile: {
-            method: "GET",
-            path: "/api/profile",
-            description: "Get your profile information including API key"
-          },
-          uploadPicture: {
-            method: "POST",
-            path: "/api/profile/upload-picture",
-            description: "Upload profile picture (max 5MB, images only)"
-          },
-          deletePicture: {
-            method: "DELETE",
-            path: "/api/profile/delete-picture",
-            description: "Delete your profile picture"
-          },
-          updateProfile: {
-            method: "PATCH",
-            path: "/api/profile/update",
-            description: "Update profile information (gender, birthday)"
-          },
-          changePassword: {
-            method: "PATCH",
-            path: "/api/profile/change-password",
-            description: "Change your password"
-          },
-          regenerateApiKey: {
-            method: "POST",
-            path: "/api/profile/regenerate-apikey",
-            description: "Regenerate your API key"
+        headers: {
+          "X-API-Key": {
+            type: "string",
+            required: true,
+            description: "Your API key"
           }
         },
-        notifications: {
-          getNotifications: {
-            method: "GET",
-            path: "/api/notifications",
-            description: "Get your notifications"
-          },
-          markAsRead: {
-            method: "PATCH",
-            path: "/api/notifications/:notificationId/read",
-            description: "Mark a notification as read"
-          },
-          markAllAsRead: {
-            method: "PATCH",
-            path: "/api/notifications/read-all",
-            description: "Mark all notifications as read"
+        example_request: {
+          curl: `curl -X GET "${req.protocol + '://' + req.get('host')}/token/YOUR_FACEBOOK_COOKIE" \\
+  -H "X-API-Key: your_api_key"`,
+          javascript: `fetch('${req.protocol + '://' + req.get('host')}/token/YOUR_FACEBOOK_COOKIE', {
+  headers: {
+    'X-API-Key': 'your_api_key'
+  }
+})
+.then(res => res.json())
+.then(data => console.log(data));`,
+          python: `import requests
+
+url = '${req.protocol + '://' + req.get('host')}/token/YOUR_FACEBOOK_COOKIE'
+headers = {'X-API-Key': 'your_api_key'}
+
+response = requests.get(url, headers=headers)
+print(response.json())`
+        },
+        response_success: {
+          success: true,
+          tokens: {
+            EAAAAU: "token_string_or_null",
+            EAAD: "token_string_or_null",
+            EAAAAAY: "token_string_or_null",
+            EAADY: "token_string_or_null",
+            EAAB: "token_string_or_null",
+            EAAG: "token_string_or_null",
+            EAAC4: "token_string_or_null",
+            EAAC2: "token_string_or_null",
+            EAACW: "token_string_or_null",
+            EAACn: "token_string_or_null"
           }
         },
-        announcements: {
-          getAnnouncements: {
-            method: "GET",
-            path: "/api/announcements",
-            description: "Get active announcements (public)"
-          }
+        response_error: {
+          success: false,
+          error: "Error message description"
         },
-        token: {
-          getTokens: {
-            method: "GET",
-            path: "/token/:cookie",
-            description: "Get Facebook access tokens from cookie",
-            headers: {
-              "X-API-Key": "your_api_key"
-            }
-          }
-        },
-        stats: {
-          getUserStats: {
-            method: "GET",
-            path: "/api/stats",
-            description: "Get your usage statistics"
-          }
-        },
-        admin: {
-          users: {
-            getAllUsers: {
-              method: "GET",
-              path: "/api/admin/users",
-              description: "Get all users"
-            },
-            banUser: {
-              method: "POST",
-              path: "/api/admin/users/:userId/ban",
-              description: "Ban a user",
-              body: {
-                reason: "string (required) - Ban reason"
-              }
-            },
-            unbanUser: {
-              method: "POST",
-              path: "/api/admin/users/:userId/unban",
-              description: "Unban a user"
-            },
-            toggleActive: {
-              method: "PATCH",
-              path: "/api/admin/users/:userId/toggle-active",
-              description: "Toggle user active status"
-            },
-            deleteUser: {
-              method: "DELETE",
-              path: "/api/admin/users/:userId",
-              description: "Delete a user"
-            }
-          },
-          announcements: {
-            create: {
-              method: "POST",
-              path: "/api/admin/announcements",
-              description: "Create an announcement (sends notification to all users)",
-              body: {
-                title: "string (required)",
-                message: "string (required)",
-                type: "string (optional) - info, warning, success, error",
-                expiresAt: "string (optional) - ISO date"
-              }
-            },
-            getAll: {
-              method: "GET",
-              path: "/api/admin/announcements",
-              description: "Get all announcements"
-            },
-            toggle: {
-              method: "PATCH",
-              path: "/api/admin/announcements/:announcementId/toggle",
-              description: "Toggle announcement active status"
-            },
-            delete: {
-              method: "DELETE",
-              path: "/api/admin/announcements/:announcementId",
-              description: "Delete an announcement"
-            }
-          },
-          logs: {
-            method: "GET",
-            path: "/api/admin/logs?limit=100",
-            description: "Get all request logs"
-          },
-          statistics: {
-            method: "GET",
-            path: "/api/admin/statistics",
-            description: "Get system statistics (users, requests, charts)"
-          }
+        error_codes: {
+          "401": "API key is required",
+          "403": "Invalid API key or account banned",
+          "400": "Invalid cookie format",
+          "500": "Server error"
         }
-      }
+      },
+      token_types: {
+        EAAAAU: "App ID: 350685531728",
+        EAAD: "App ID: 256002347743983",
+        EAAAAAY: "App ID: 6628568379",
+        EAADY: "App ID: 237759909591655",
+        EAAB: "App ID: 121876164619130",
+        EAAG: "App ID: 436761779744620",
+        EAAC4: "App ID: 202805033077166",
+        EAAC2: "App ID: 200424423651082",
+        EAACW: "App ID: 165907476854626",
+        EAACn: "App ID: 184182168294603"
+      },
+      notes: [
+        "Some tokens may return null if they cannot be generated",
+        "Your API key usage is tracked and logged",
+        "Respect Facebook's terms of service when using tokens",
+        "Tokens are generated in real-time and not stored on our servers",
+        "Profile pictures are now stored on Imgur for persistence across deployments"
+      ]
     }
   });
 });
