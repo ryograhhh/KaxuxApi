@@ -25,6 +25,8 @@
             height: 18px;
             display: inline-block;
             margin-left: 4px;
+            border-radius: 50%;
+            object-fit: cover;
         }
     </style>
     <script>
@@ -126,8 +128,9 @@
         
         <!-- Notifications Panel -->
         <div id="notificationPanel" class="hidden absolute right-4 mt-2 w-80 sm:w-96 bg-white border border-border rounded-lg shadow-lg z-50 max-h-[32rem] overflow-y-auto">
-            <div class="p-4 border-b border-border sticky top-0 bg-white">
+            <div class="p-4 border-b border-border sticky top-0 bg-white flex items-center justify-between">
                 <h3 class="font-semibold text-foreground">Notifications</h3>
+                <button onclick="markAllAsRead()" class="text-xs text-primary hover:text-primary/80 font-medium">Mark all as read</button>
             </div>
             <div id="notificationsList">
                 <!-- Notifications will be loaded here -->
@@ -420,6 +423,19 @@
             }
         }
 
+        async function markAllAsRead() {
+            try {
+                await fetch(`/api/notifications/read-all`, { 
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                loadNotifications();
+                loadProfile();
+            } catch (error) {
+                console.error('Mark all read error:', error);
+            }
+        }
+
         // Load announcements
         async function loadAnnouncements() {
             try {
@@ -444,14 +460,14 @@
                             <div class="flex items-start space-x-3 mb-2">
                                 <div class="relative flex-shrink-0">
                                     <img src="${creatorProfile}" alt="${ann.createdByUsername}" class="w-10 h-10 rounded-full object-cover border-2 border-white">
-                                    ${hasVerifiedBadge ? `<img src="${ann.createdByVerifiedBadge}" class="absolute -bottom-1 -right-1 w-4 h-4" alt="Verified">` : ''}
+                                    ${hasVerifiedBadge ? `<img src="${ann.createdByVerifiedBadge}" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full" alt="Verified">` : ''}
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center space-x-1">
+                                    <div class="flex items-center space-x-2">
                                         <span class="font-semibold text-sm">${ann.createdByUsername}</span>
-                                        ${ann.createdByTag ? `<span class="text-xs text-opacity-75">${ann.createdByTag}</span>` : ''}
+                                        ${ann.createdByIsAdmin ? `<span class="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">Admin</span>` : ''}
                                     </div>
-                                    <p class="text-xs opacity-75">${new Date(ann.createdAt).toLocaleDateString()}</p>
+                                    <p class="text-xs opacity-75 mt-0.5">${new Date(ann.createdAt).toLocaleDateString()}</p>
                                 </div>
                             </div>
                             <h4 class="font-semibold mb-1">${ann.title}</h4>
