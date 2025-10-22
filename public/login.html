@@ -8,104 +8,169 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', sans-serif; }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        border: "hsl(214.3 31.8% 91.4%)",
-                        input: "hsl(214.3 31.8% 91.4%)",
-                        ring: "hsl(222.2 84% 4.9%)",
-                        background: "hsl(0 0% 100%)",
-                        foreground: "hsl(222.2 84% 4.9%)",
-                        primary: {
-                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
-                            foreground: "hsl(210 40% 98%)",
-                        },
-                        secondary: {
-                            DEFAULT: "hsl(210 40% 96.1%)",
-                            foreground: "hsl(222.2 47.4% 11.2%)",
-                        },
-                        muted: {
-                            DEFAULT: "hsl(210 40% 96.1%)",
-                            foreground: "hsl(215.4 16.3% 46.9%)",
-                        },
-                    }
-                }
+        * { 
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        @media (max-width: 640px) {
+            .mobile-safe {
+                padding-bottom: env(safe-area-inset-bottom);
             }
         }
-    </script>
+
+        input:focus, button:focus {
+            outline: none;
+        }
+
+        .input-field {
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+    </style>
 </head>
-<body class="bg-secondary min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md">
-        <div class="bg-white border border-border rounded-lg shadow-sm p-8">
-            <div class="flex items-center justify-center mb-8">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="share-2" class="w-8 h-8 text-primary"></i>
-                    <span class="text-3xl font-bold text-foreground">KazuX</span>
-                </div>
+<body class="bg-zinc-50 min-h-screen mobile-safe">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="px-4 sm:px-6 py-4 sm:py-6">
+            <div class="max-w-md mx-auto">
+                <a href="/" class="inline-flex items-center space-x-2 text-zinc-900">
+                    <i data-lucide="share-2" class="w-6 h-6"></i>
+                    <span class="text-xl font-semibold">KazuX</span>
+                </a>
             </div>
+        </header>
 
-            <h2 class="text-2xl font-semibold text-foreground text-center mb-2">Welcome Back</h2>
-            <p class="text-sm text-muted-foreground text-center mb-8">Login to your account to continue</p>
-
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Username</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="user" class="w-4 h-4 text-muted-foreground"></i>
-                        </div>
-                        <input type="text" id="username" required class="w-full pl-10 pr-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Enter your username">
+        <!-- Main Content -->
+        <main class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8">
+            <div class="w-full max-w-md">
+                <!-- Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-zinc-200 p-6 sm:p-8">
+                    <!-- Title -->
+                    <div class="mb-8">
+                        <h1 class="text-2xl sm:text-3xl font-semibold text-zinc-900 mb-2">Welcome back</h1>
+                        <p class="text-sm text-zinc-500">Sign in to your account to continue</p>
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-2">Password</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i data-lucide="lock" class="w-4 h-4 text-muted-foreground"></i>
+                    <!-- Form -->
+                    <form id="loginForm" class="space-y-5">
+                        <!-- Username -->
+                        <div class="space-y-2">
+                            <label for="username" class="block text-sm font-medium text-zinc-700">
+                                Username
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <i data-lucide="user" class="w-4 h-4 text-zinc-400"></i>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    id="username" 
+                                    required 
+                                    class="input-field w-full pl-10 pr-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400"
+                                    placeholder="Enter your username"
+                                    autocomplete="username"
+                                >
+                            </div>
                         </div>
-                        <input type="password" id="password" required class="w-full pl-10 pr-10 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Enter your password">
-                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <i data-lucide="eye" class="w-4 h-4 text-muted-foreground"></i>
+
+                        <!-- Password -->
+                        <div class="space-y-2">
+                            <label for="password" class="block text-sm font-medium text-zinc-700">
+                                Password
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <i data-lucide="lock" class="w-4 h-4 text-zinc-400"></i>
+                                </div>
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    required 
+                                    class="input-field w-full pl-10 pr-10 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400"
+                                    placeholder="Enter your password"
+                                    autocomplete="current-password"
+                                >
+                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center">
+                                    <i data-lucide="eye" class="w-4 h-4 text-zinc-400 hover:text-zinc-600 transition"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div id="errorMessage" class="hidden">
+                            <div class="flex items-start space-x-3 p-3.5 bg-red-50 border border-red-100 rounded-xl">
+                                <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0"></i>
+                                <p class="text-sm text-red-800 flex-1"></p>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button 
+                            type="submit" 
+                            class="btn-primary w-full py-2.5 bg-zinc-900 text-white rounded-xl text-sm font-medium hover:bg-zinc-800 active:bg-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                        >
+                            <span>Sign in</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
+                    </form>
+
+                    <!-- Divider -->
+                    <div class="relative my-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-zinc-200"></div>
+                        </div>
+                        <div class="relative flex justify-center text-xs">
+                            <span class="px-2 bg-white text-zinc-500">Don't have an account?</span>
+                        </div>
                     </div>
+
+                    <!-- Signup Link -->
+                    <a 
+                        href="/signup.html" 
+                        class="block w-full py-2.5 bg-zinc-50 text-zinc-900 rounded-xl text-sm font-medium hover:bg-zinc-100 transition text-center"
+                    >
+                        Create an account
+                    </a>
                 </div>
 
-                <div id="errorMessage" class="hidden p-3 bg-red-50 border border-red-200 rounded-md">
-                    <p class="text-sm text-red-800"></p>
-                </div>
-
-                <button type="submit" class="w-full py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition font-medium flex items-center justify-center space-x-2">
-                    <span>Login</span>
-                    <i data-lucide="log-in" class="w-4 h-4"></i>
-                </button>
-            </form>
-
-            <div class="mt-6 text-center">
-                <p class="text-sm text-muted-foreground">
-                    Don't have an account? 
-                    <a href="/signup.html" class="text-primary font-medium hover:underline">Sign up</a>
+                <!-- Footer -->
+                <p class="text-center text-xs text-zinc-500 mt-6">
+                    Protected by industry-standard security measures
                 </p>
             </div>
-        </div>
+        </main>
 
-        <div class="mt-6 text-center">
-            <p class="text-xs text-muted-foreground">
-                © 2025 KazuX. All rights reserved.
-            </p>
-        </div>
+        <!-- Bottom Footer -->
+        <footer class="px-4 sm:px-6 py-4 sm:py-6">
+            <div class="max-w-md mx-auto">
+                <p class="text-center text-xs text-zinc-400">
+                    © 2025 KazuX. All rights reserved.
+                </p>
+            </div>
+        </footer>
     </div>
 
     <script>
         lucide.createIcons();
 
         // Toggle password visibility
-        document.getElementById('togglePassword').addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function() {
             const icon = this.querySelector('i');
             
             if (passwordInput.type === 'password') {
@@ -119,12 +184,20 @@
         });
 
         // Login form submission
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        const loginForm = document.getElementById('loginForm');
+        const errorDiv = document.getElementById('errorMessage');
+
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Signing in...</span>';
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('errorMessage');
+            
+            errorDiv.classList.add('hidden');
             
             try {
                 const response = await fetch('/api/auth/login', {
@@ -146,11 +219,19 @@
                     }
                 } else {
                     errorDiv.classList.remove('hidden');
-                    errorDiv.querySelector('p').textContent = data.error || 'Login failed';
+                    errorDiv.querySelector('p').textContent = data.error || 'Login failed. Please try again.';
+                    
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                    lucide.createIcons();
                 }
             } catch (error) {
                 errorDiv.classList.remove('hidden');
                 errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
+                
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                lucide.createIcons();
             }
         });
     </script>
