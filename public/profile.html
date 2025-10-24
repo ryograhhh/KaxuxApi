@@ -8,98 +8,138 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', sans-serif; }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        border: "hsl(214.3 31.8% 91.4%)",
-                        input: "hsl(214.3 31.8% 91.4%)",
-                        ring: "hsl(222.2 84% 4.9%)",
-                        background: "hsl(0 0% 100%)",
-                        foreground: "hsl(222.2 84% 4.9%)",
-                        primary: {
-                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
-                            foreground: "hsl(210 40% 98%)",
-                        },
-                        secondary: {
-                            DEFAULT: "hsl(210 40% 96.1%)",
-                            foreground: "hsl(222.2 47.4% 11.2%)",
-                        },
-                        muted: {
-                            DEFAULT: "hsl(210 40% 96.1%)",
-                            foreground: "hsl(215.4 16.3% 46.9%)",
-                        },
-                    }
-                }
+        * { 
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        @media (max-width: 640px) {
+            .mobile-safe {
+                padding-bottom: env(safe-area-inset-bottom);
             }
         }
-    </script>
+
+        .smooth-transition {
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+        }
+
+        .input-field {
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .verified-badge {
+            color: #3b82f6;
+        }
+    </style>
 </head>
-<body class="bg-background">
+<body class="bg-zinc-50 min-h-screen mobile-safe">
     <!-- Navigation -->
-    <nav class="border-b border-border bg-white sticky top-0 z-50">
+    <nav class="bg-white border-b border-zinc-200 sticky top-0 z-40 backdrop-blur bg-white/95">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="share-2" class="w-6 h-6"></i>
-                    <span class="text-xl font-bold text-foreground">KazuX</span>
+                <div class="flex items-center space-x-6">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i data-lucide="share-2" class="w-6 h-6 text-zinc-900"></i>
+                        <span class="text-xl font-semibold text-zinc-900">KazuX</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="/" class="px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg smooth-transition">Home</a>
+                        <a href="/profile.html" class="px-3 py-2 text-sm font-medium text-zinc-900 bg-zinc-100 rounded-lg">Profile</a>
+                    </div>
                 </div>
-                <div class="hidden md:flex items-center space-x-6">
-                    <a href="/" class="text-muted-foreground hover:text-foreground transition">Home</a>
-                    <a href="/profile" class="text-foreground font-medium">Profile</a>
-                    <button id="logoutBtn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm">
-                        Logout
+                <div class="flex items-center space-x-2">
+                    <button id="logoutBtn" class="hidden sm:flex items-center space-x-2 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 rounded-lg smooth-transition">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Sign out</span>
+                    </button>
+                    <button id="mobileMenuBtn" class="sm:hidden p-2 hover:bg-zinc-100 rounded-lg smooth-transition">
+                        <i data-lucide="menu" class="w-5 h-5 text-zinc-700"></i>
                     </button>
                 </div>
-                <button id="mobileMenuBtn" class="md:hidden">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
             </div>
         </div>
-        <div id="mobileMenu" class="hidden md:hidden border-t border-border">
-            <div class="px-4 py-3 space-y-3">
-                <a href="/" class="block text-muted-foreground py-2">Home</a>
-                <a href="/profile" class="block text-foreground font-medium py-2">Profile</a>
-                <button id="mobileLogoutBtn" class="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition text-sm">
-                    Logout
+        
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden sm:hidden border-t border-zinc-200 bg-white">
+            <div class="px-4 py-3 space-y-1">
+                <a href="/" class="block px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-100 rounded-lg smooth-transition">Home</a>
+                <a href="/profile.html" class="block px-3 py-2 text-sm text-zinc-900 bg-zinc-100 rounded-lg font-medium">Profile</a>
+                <button id="mobileLogoutBtn" class="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg smooth-transition">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>Sign out</span>
                 </button>
             </div>
         </div>
     </nav>
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Profile Card -->
             <div class="lg:col-span-1">
-                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
                     <div class="flex flex-col items-center">
                         <div class="relative mb-4">
-                            <img id="profilePicture" src="/uploads/profiles/default.png" alt="Profile" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-border">
-                            <label for="fileInput" class="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2.5 rounded-full cursor-pointer hover:bg-primary/90 transition shadow-md">
+                            <img id="profilePicture" src="/uploads/profiles/default.png" alt="Profile" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-zinc-100">
+                            <label for="fileInput" class="absolute bottom-0 right-0 bg-zinc-900 text-white p-2.5 rounded-full cursor-pointer hover:bg-zinc-800 smooth-transition shadow-md">
                                 <i data-lucide="camera" class="w-4 h-4"></i>
                             </label>
                             <input type="file" id="fileInput" accept="image/*" class="hidden">
                         </div>
-                        <h2 id="profileUsername" class="text-xl font-bold text-foreground mb-1">Username</h2>
                         
-                        <div class="w-full space-y-3 mt-4 pt-4 border-t border-border">
+                        <div class="flex items-center space-x-1 mb-1">
+                            <h2 id="profileUsername" class="text-xl font-semibold text-zinc-900">Username</h2>
+                            <i id="profileVerifiedBadge" data-lucide="badge-check" class="verified-badge w-5 h-5 hidden"></i>
+                        </div>
+                        <p id="profileRole" class="text-sm text-zinc-500 mb-4">Member</p>
+                        
+                        <div class="w-full space-y-3 pt-4 border-t border-zinc-200">
                             <div class="flex items-center justify-between text-sm">
-                                <span class="text-muted-foreground flex items-center gap-2">
-                                    <i data-lucide="activity" class="w-4 h-4"></i>
-                                    Total Requests
+                                <span class="text-zinc-600 flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="activity" class="w-4 h-4 text-blue-600"></i>
+                                    </div>
+                                    <span>Requests</span>
                                 </span>
-                                <span id="profileRequestCount" class="font-semibold text-foreground">0</span>
+                                <span id="profileRequestCount" class="font-semibold text-zinc-900">0</span>
                             </div>
                             <div class="flex items-center justify-between text-sm">
-                                <span class="text-muted-foreground flex items-center gap-2">
-                                    <i data-lucide="calendar" class="w-4 h-4"></i>
-                                    Member Since
+                                <span class="text-zinc-600 flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                                        <i data-lucide="calendar" class="w-4 h-4 text-green-600"></i>
+                                    </div>
+                                    <span>Joined</span>
                                 </span>
-                                <span id="profileCreatedAt" class="font-semibold text-foreground text-xs">-</span>
+                                <span id="profileCreatedAt" class="font-semibold text-zinc-900 text-xs">-</span>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Notice for Regular Users -->
+                <div id="uploadNotice" class="hidden mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                    <div class="flex items-start space-x-3">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm font-medium text-blue-900">Profile Picture Upload</p>
+                            <p class="text-xs text-blue-700 mt-1">Profile picture upload is currently disabled for regular users</p>
                         </div>
                     </div>
                 </div>
@@ -108,34 +148,37 @@
             <!-- Profile Details -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- Edit Profile -->
-                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center space-x-3 mb-6">
-                        <div class="p-2 bg-secondary rounded-lg">
-                            <i data-lucide="user-cog" class="w-5 h-5 text-primary"></i>
+                        <div class="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                            <i data-lucide="user-cog" class="w-5 h-5 text-purple-600"></i>
                         </div>
-                        <h3 class="text-lg font-semibold text-foreground">Edit Profile</h3>
+                        <div>
+                            <h3 class="text-lg font-semibold text-zinc-900">Edit Profile</h3>
+                            <p class="text-sm text-zinc-500">Update your personal information</p>
+                        </div>
                     </div>
 
                     <form id="updateProfileForm" class="space-y-4">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-foreground mb-2">Gender</label>
-                                <select id="gender" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-zinc-700">Gender</label>
+                                <select id="gender" class="input-field w-full px-4 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg width=%2714%27 height=%278%27 viewBox=%270 0 14 8%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M1 1L7 7L13 1%27 stroke=%27%2371717a%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 14px 8px; padding-right: 2.5rem;">
                                     <option value="male">Male</option>
                                     <option value="female">Female</option>
                                     <option value="other">Other</option>
                                 </select>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-foreground mb-2">Birthday</label>
-                                <input type="date" id="birthday" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-zinc-700">Birthday</label>
+                                <input type="date" id="birthday" class="input-field w-full px-4 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900">
                             </div>
                         </div>
 
                         <div id="updateMessage" class="hidden"></div>
 
-                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition flex items-center justify-center space-x-2 text-sm font-medium">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 smooth-transition flex items-center justify-center space-x-2 text-sm font-medium">
                             <i data-lucide="save" class="w-4 h-4"></i>
                             <span>Save Changes</span>
                         </button>
@@ -143,31 +186,35 @@
                 </div>
 
                 <!-- API Key -->
-                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center space-x-3 mb-6">
-                        <div class="p-2 bg-secondary rounded-lg">
-                            <i data-lucide="key" class="w-5 h-5 text-primary"></i>
+                        <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <i data-lucide="key" class="w-5 h-5 text-blue-600"></i>
                         </div>
-                        <h3 class="text-lg font-semibold text-foreground">API Key</h3>
+                        <div>
+                            <h3 class="text-lg font-semibold text-zinc-900">API Key</h3>
+                            <p class="text-sm text-zinc-500">Manage your API authentication</p>
+                        </div>
                     </div>
 
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-foreground mb-2">Your API Key</label>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-zinc-700">Your API Key</label>
                             <div class="flex gap-2">
-                                <input type="password" id="apiKey" readonly class="flex-1 px-3 py-2 border border-input rounded-md bg-secondary text-sm font-mono">
-                                <button id="toggleApiKey" class="px-3 py-2 border border-input rounded-md hover:bg-secondary transition">
-                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                <input type="password" id="apiKey" readonly class="input-field flex-1 px-4 py-2.5 border border-zinc-200 rounded-xl bg-zinc-50 text-sm font-mono text-zinc-900">
+                                <button id="toggleApiKey" class="px-3 py-2.5 border border-zinc-200 rounded-xl hover:bg-zinc-50 smooth-transition">
+                                    <i data-lucide="eye" class="w-4 h-4 text-zinc-600"></i>
                                 </button>
-                                <button id="copyApiKey" class="px-3 py-2 border border-input rounded-md hover:bg-secondary transition">
-                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                <button id="copyApiKey" class="px-3 py-2.5 border border-zinc-200 rounded-xl hover:bg-zinc-50 smooth-transition">
+                                    <i data-lucide="copy" class="w-4 h-4 text-zinc-600"></i>
                                 </button>
                             </div>
+                            <p class="text-xs text-zinc-500">Keep your API key secure and don't share it publicly</p>
                         </div>
 
                         <div id="apiKeyMessage" class="hidden"></div>
 
-                        <button id="regenerateApiKey" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition flex items-center justify-center space-x-2 text-sm font-medium">
+                        <button id="regenerateApiKey" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 smooth-transition flex items-center justify-center space-x-2 text-sm font-medium">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             <span>Regenerate API Key</span>
                         </button>
@@ -175,28 +222,32 @@
                 </div>
 
                 <!-- Change Password -->
-                <div class="bg-white border border-border rounded-lg p-6 shadow-sm">
+                <div class="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm">
                     <div class="flex items-center space-x-3 mb-6">
-                        <div class="p-2 bg-secondary rounded-lg">
-                            <i data-lucide="lock" class="w-5 h-5 text-primary"></i>
+                        <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                            <i data-lucide="lock" class="w-5 h-5 text-orange-600"></i>
                         </div>
-                        <h3 class="text-lg font-semibold text-foreground">Change Password</h3>
+                        <div>
+                            <h3 class="text-lg font-semibold text-zinc-900">Change Password</h3>
+                            <p class="text-sm text-zinc-500">Update your account password</p>
+                        </div>
                     </div>
 
                     <form id="changePasswordForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-foreground mb-2">Current Password</label>
-                            <input type="password" id="currentPassword" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-zinc-700">Current Password</label>
+                            <input type="password" id="currentPassword" class="input-field w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-sm text-zinc-900" placeholder="Enter current password">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-foreground mb-2">New Password</label>
-                            <input type="password" id="newPassword" class="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-sm">
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-zinc-700">New Password</label>
+                            <input type="password" id="newPassword" minlength="6" class="input-field w-full px-4 py-2.5 border border-zinc-200 rounded-xl text-sm text-zinc-900" placeholder="Enter new password">
+                            <p class="text-xs text-zinc-500">Must be at least 6 characters long</p>
                         </div>
 
                         <div id="passwordMessage" class="hidden"></div>
 
-                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition flex items-center justify-center space-x-2 text-sm font-medium">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-zinc-900 text-white rounded-xl hover:bg-zinc-800 smooth-transition flex items-center justify-center space-x-2 text-sm font-medium">
                             <i data-lucide="check" class="w-4 h-4"></i>
                             <span>Update Password</span>
                         </button>
@@ -206,6 +257,12 @@
         </div>
     </main>
 
+    <!-- Success Toast -->
+    <div id="successToast" class="hidden fixed top-20 right-4 z-50 bg-zinc-900 text-white px-6 py-3 rounded-xl shadow-lg flex items-center space-x-3 animate-fade-in">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        <span id="toastMessage">Success!</span>
+    </div>
+
     <script>
         lucide.createIcons();
 
@@ -214,22 +271,47 @@
             window.location.href = '/login.html';
         }
 
+        let userProfile = null;
+
+        // Mobile menu toggle
         document.getElementById('mobileMenuBtn').addEventListener('click', () => {
             document.getElementById('mobileMenu').classList.toggle('hidden');
+            lucide.createIcons();
         });
 
+        // Logout handlers
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('mobileLogoutBtn').addEventListener('click', logout);
 
         async function logout() {
-            await fetch('/api/auth/logout', { 
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            localStorage.removeItem('sessionToken');
-            window.location.href = '/login.html';
+            try {
+                await fetch('/api/auth/logout', { 
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                localStorage.removeItem('sessionToken');
+                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                localStorage.removeItem('sessionToken');
+                window.location.href = '/login.html';
+            }
         }
 
+        function getProfilePictureUrl(picture) {
+            if (!picture || picture === '') {
+                return '/uploads/profiles/default.png';
+            }
+            if (picture.startsWith('http://') || picture.startsWith('https://')) {
+                return picture;
+            }
+            if (picture.startsWith('/')) {
+                return picture;
+            }
+            return '/' + picture;
+        }
+
+        // Load profile
         async function loadProfile() {
             try {
                 const response = await fetch('/api/profile', {
@@ -245,19 +327,31 @@
                 }
 
                 const data = await response.json();
-                const profile = data.data;
+                userProfile = data.data;
                 
-                document.getElementById('profileUsername').textContent = profile.username;
-                document.getElementById('profileRequestCount').textContent = profile.requestCount;
-                document.getElementById('profileCreatedAt').textContent = new Date(profile.createdAt).toLocaleDateString();
+                document.getElementById('profileUsername').textContent = userProfile.username;
+                document.getElementById('profileRequestCount').textContent = userProfile.requestCount.toLocaleString();
+                document.getElementById('profileCreatedAt').textContent = new Date(userProfile.createdAt).toLocaleDateString();
                 
-                if (profile.profilePicture) {
-                    document.getElementById('profilePicture').src = profile.profilePicture;
+                // Show verified badge if admin
+                if (userProfile.isAdmin) {
+                    document.getElementById('profileVerifiedBadge').classList.remove('hidden');
+                    document.getElementById('profileRole').textContent = 'Administrator';
+                } else {
+                    document.getElementById('profileVerifiedBadge').classList.add('hidden');
+                    document.getElementById('profileRole').textContent = 'Member';
+                    // Show upload notice for regular users
+                    document.getElementById('uploadNotice').classList.remove('hidden');
                 }
+                
+                const profilePicUrl = getProfilePictureUrl(userProfile.profilePicture);
+                document.getElementById('profilePicture').src = profilePicUrl;
 
-                document.getElementById('gender').value = profile.gender;
-                document.getElementById('birthday').value = profile.birthday.split('T')[0];
-                document.getElementById('apiKey').value = profile.apiKey;
+                document.getElementById('gender').value = userProfile.gender;
+                document.getElementById('birthday').value = userProfile.birthday.split('T')[0];
+                document.getElementById('apiKey').value = userProfile.apiKey;
+                
+                lucide.createIcons();
             } catch (error) {
                 console.error('Load profile error:', error);
             }
@@ -281,18 +375,26 @@
                 const data = await response.json();
                 if (data.success) {
                     document.getElementById('profilePicture').src = data.data.profilePicture;
-                    showMessage('updateMessage', 'Profile picture updated!', 'success');
+                    showSuccessToast('Profile picture updated!');
                 } else {
                     showMessage('updateMessage', data.error, 'error');
                 }
             } catch (error) {
                 showMessage('updateMessage', 'Failed to upload picture', 'error');
             }
+            
+            // Reset file input
+            e.target.value = '';
         });
 
         // Update profile
         document.getElementById('updateProfileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Saving...</span>';
+            lucide.createIcons();
             
             const gender = document.getElementById('gender').value;
             const birthday = document.getElementById('birthday').value;
@@ -310,12 +412,16 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('updateMessage', 'Profile updated successfully!', 'success');
+                    showSuccessToast('Profile updated successfully!');
                 } else {
                     showMessage('updateMessage', data.error, 'error');
                 }
             } catch (error) {
                 showMessage('updateMessage', 'Failed to update profile', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i><span>Save Changes</span>';
+                lucide.createIcons();
             }
         });
 
@@ -337,13 +443,21 @@
         // Copy API Key
         document.getElementById('copyApiKey').addEventListener('click', () => {
             const apiKey = document.getElementById('apiKey').value;
-            navigator.clipboard.writeText(apiKey);
-            showMessage('apiKeyMessage', 'API Key copied to clipboard!', 'success');
+            navigator.clipboard.writeText(apiKey).then(() => {
+                showSuccessToast('API Key copied to clipboard!');
+            }).catch(() => {
+                showMessage('apiKeyMessage', 'Failed to copy API key', 'error');
+            });
         });
 
         // Regenerate API Key
         document.getElementById('regenerateApiKey').addEventListener('click', async () => {
-            if (!confirm('Are you sure? This will invalidate your current API key.')) return;
+            if (!confirm('Are you sure? This will invalidate your current API key and may break existing integrations.')) return;
+
+            const btn = document.getElementById('regenerateApiKey');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Regenerating...</span>';
+            lucide.createIcons();
 
             try {
                 const response = await fetch('/api/profile/regenerate-apikey', {
@@ -354,18 +468,27 @@
                 const data = await response.json();
                 if (data.success) {
                     document.getElementById('apiKey').value = data.data.apiKey;
-                    showMessage('apiKeyMessage', 'API Key regenerated successfully!', 'success');
+                    showSuccessToast('API Key regenerated successfully!');
                 } else {
                     showMessage('apiKeyMessage', data.error, 'error');
                 }
             } catch (error) {
                 showMessage('apiKeyMessage', 'Failed to regenerate API key', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Regenerate API Key</span>';
+                lucide.createIcons();
             }
         });
 
         // Change password
         document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Updating...</span>';
+            lucide.createIcons();
             
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
@@ -382,7 +505,7 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    showMessage('passwordMessage', 'Password changed successfully!', 'success');
+                    showSuccessToast('Password changed successfully!');
                     document.getElementById('currentPassword').value = '';
                     document.getElementById('newPassword').value = '';
                 } else {
@@ -390,23 +513,52 @@
                 }
             } catch (error) {
                 showMessage('passwordMessage', 'Failed to change password', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Update Password</span>';
+                lucide.createIcons();
             }
         });
 
         function showMessage(elementId, message, type) {
             const element = document.getElementById(elementId);
+            const icons = {
+                success: 'check-circle-2',
+                error: 'alert-circle'
+            };
             const colors = {
-                success: 'bg-green-50 text-green-800 border-green-200',
-                error: 'bg-red-50 text-red-800 border-red-200'
+                success: 'bg-green-50 border-green-200',
+                error: 'bg-red-50 border-red-200'
+            };
+            const textColors = {
+                success: 'text-green-800',
+                error: 'text-red-800'
             };
             
-            element.className = `p-3 border rounded-md text-sm ${colors[type]}`;
-            element.textContent = message;
+            element.className = `flex items-start space-x-3 p-4 border rounded-xl ${colors[type]}`;
+            element.innerHTML = `
+                <i data-lucide="${icons[type]}" class="w-5 h-5 ${textColors[type]} flex-shrink-0 mt-0.5"></i>
+                <p class="text-sm ${textColors[type]} flex-1">${message}</p>
+            `;
             element.classList.remove('hidden');
+            lucide.createIcons();
             
             setTimeout(() => element.classList.add('hidden'), 5000);
         }
 
+        function showSuccessToast(message) {
+            const toast = document.getElementById('successToast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Initialize
         loadProfile();
     </script>
 </body>
