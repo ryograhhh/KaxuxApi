@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - KazuX</title>
+    <title>Login - KazuX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { 
@@ -20,7 +21,7 @@
             }
         }
 
-        input:focus, select:focus, button:focus {
+        input:focus, button:focus {
             outline: none;
         }
 
@@ -60,12 +61,12 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-zinc-200 p-6 sm:p-8">
                     <!-- Title -->
                     <div class="mb-8">
-                        <h1 class="text-2xl sm:text-3xl font-semibold text-zinc-900 mb-2">Create account</h1>
-                        <p class="text-sm text-zinc-500">Get started with KazuX today</p>
+                        <h1 class="text-2xl sm:text-3xl font-semibold text-zinc-900 mb-2">Welcome back</h1>
+                        <p class="text-sm text-zinc-500">Sign in to your account to continue</p>
                     </div>
 
                     <!-- Form -->
-                    <form id="signupForm" class="space-y-5">
+                    <form id="loginForm" class="space-y-5">
                         <!-- Username -->
                         <div class="space-y-2">
                             <label for="username" class="block text-sm font-medium text-zinc-700">
@@ -80,7 +81,7 @@
                                     id="username" 
                                     required 
                                     class="input-field w-full pl-10 pr-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400"
-                                    placeholder="Choose a username"
+                                    placeholder="Enter your username"
                                     autocomplete="username"
                                 >
                             </div>
@@ -99,52 +100,20 @@
                                     type="password" 
                                     id="password" 
                                     required 
-                                    minlength="6"
                                     class="input-field w-full pl-10 pr-10 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400"
-                                    placeholder="At least 6 characters"
-                                    autocomplete="new-password"
+                                    placeholder="Enter your password"
+                                    autocomplete="current-password"
                                 >
                                 <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center">
                                     <i data-lucide="eye" class="w-4 h-4 text-zinc-400 hover:text-zinc-600 transition"></i>
                                 </button>
                             </div>
-                            <p class="text-xs text-zinc-500">Must be at least 6 characters long</p>
                         </div>
 
-                        <!-- Gender -->
+                        <!-- Captcha -->
                         <div class="space-y-2">
-                            <label for="gender" class="block text-sm font-medium text-zinc-700">
-                                Gender
-                            </label>
-                            <select 
-                                id="gender" 
-                                required 
-                                class="input-field w-full px-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 appearance-none cursor-pointer"
-                                style="background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg width=%2714%27 height=%278%27 viewBox=%270 0 14 8%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M1 1L7 7L13 1%27 stroke=%27%2371717a%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 14px 8px; padding-right: 2.5rem;"
-                            >
-                                <option value="">Select your gender</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-
-                        <!-- Birthday -->
-                        <div class="space-y-2">
-                            <label for="birthday" class="block text-sm font-medium text-zinc-700">
-                                Date of birth
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <i data-lucide="calendar" class="w-4 h-4 text-zinc-400"></i>
-                                </div>
-                                <input 
-                                    type="date" 
-                                    id="birthday" 
-                                    required 
-                                    class="input-field w-full pl-10 pr-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900"
-                                >
-                            </div>
+                            <label class="block text-sm font-medium text-zinc-700">Verify you're human</label>
+                            <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8l00Z7QGqw2G-H"></div>
                         </div>
 
                         <!-- Error Message -->
@@ -155,20 +124,12 @@
                             </div>
                         </div>
 
-                        <!-- Success Message -->
-                        <div id="successMessage" class="hidden">
-                            <div class="flex items-start space-x-3 p-3.5 bg-green-50 border border-green-100 rounded-xl">
-                                <i data-lucide="check-circle" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
-                                <p class="text-sm text-green-800 flex-1"></p>
-                            </div>
-                        </div>
-
                         <!-- Submit Button -->
                         <button 
                             type="submit" 
                             class="btn-primary w-full py-2.5 bg-zinc-900 text-white rounded-xl text-sm font-medium hover:bg-zinc-800 active:bg-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                         >
-                            <span>Create account</span>
+                            <span>Sign in</span>
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                     </form>
@@ -179,22 +140,22 @@
                             <div class="w-full border-t border-zinc-200"></div>
                         </div>
                         <div class="relative flex justify-center text-xs">
-                            <span class="px-2 bg-white text-zinc-500">Already have an account?</span>
+                            <span class="px-2 bg-white text-zinc-500">Don't have an account?</span>
                         </div>
                     </div>
 
-                    <!-- Login Link -->
+                    <!-- Signup Link -->
                     <a 
-                        href="/login.html" 
+                        href="/signup.html" 
                         class="block w-full py-2.5 bg-zinc-50 text-zinc-900 rounded-xl text-sm font-medium hover:bg-zinc-100 transition text-center"
                     >
-                        Sign in instead
+                        Create an account
                     </a>
                 </div>
 
                 <!-- Footer -->
                 <p class="text-center text-xs text-zinc-500 mt-6">
-                    By creating an account, you agree to our Terms of Service and Privacy Policy
+                    Protected by Cloudflare Turnstile
                 </p>
             </div>
         </main>
@@ -229,56 +190,76 @@
             lucide.createIcons();
         });
 
-        // Signup form submission
-        const signupForm = document.getElementById('signupForm');
+        // Login form submission
+        const loginForm = document.getElementById('loginForm');
         const errorDiv = document.getElementById('errorMessage');
-        const successDiv = document.getElementById('successMessage');
 
-        signupForm.addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const submitBtn = e.target.querySelector('button[type="submit"]');
+            errorDiv.classList.add('hidden');
+            
+            // Get turnstile token
+            const turnstileToken = turnstile.getResponse();
+            if (!turnstileToken) {
+                errorDiv.classList.remove('hidden');
+                errorDiv.querySelector('p').textContent = 'Please complete the captcha verification';
+                lucide.createIcons();
+                return;
+            }
+            
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Creating account...</span>';
+            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Signing in...</span>';
+            lucide.createIcons();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const gender = document.getElementById('gender').value;
-            const birthday = document.getElementById('birthday').value;
-            
-            errorDiv.classList.add('hidden');
-            successDiv.classList.add('hidden');
             
             try {
-                const response = await fetch('/api/auth/signup', {
+                const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, gender, birthday })
+                    body: JSON.stringify({ 
+                        username, 
+                        password,
+                        turnstileToken: turnstileToken
+                    })
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    successDiv.classList.remove('hidden');
-                    successDiv.querySelector('p').textContent = data.message;
+                    localStorage.setItem('sessionToken', data.data.token);
                     
-                    setTimeout(() => {
-                        window.location.href = '/login.html';
-                    }, 1500);
+                    // Check if admin
+                    if (data.data.user.isAdmin) {
+                        window.location.href = '/admin.html';
+                    } else {
+                        window.location.href = '/index.html';
+                    }
                 } else {
                     errorDiv.classList.remove('hidden');
-                    errorDiv.querySelector('p').textContent = data.error || 'Signup failed. Please try again.';
+                    errorDiv.querySelector('p').textContent = data.error || 'Login failed. Please try again.';
+                    lucide.createIcons();
+                    
+                    // Reset turnstile
+                    turnstile.reset();
                     
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<span>Create account</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                    submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
                     lucide.createIcons();
                 }
             } catch (error) {
                 errorDiv.classList.remove('hidden');
                 errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
+                lucide.createIcons();
+                
+                // Reset turnstile
+                turnstile.reset();
                 
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>Create account</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
                 lucide.createIcons();
             }
         });
