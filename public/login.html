@@ -6,6 +6,7 @@
     <title>Login - KazuX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { 
@@ -109,6 +110,12 @@
                             </div>
                         </div>
 
+                        <!-- Captcha -->
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-zinc-700">Verify you're human</label>
+                            <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8l00Z7QGqw2G-H"></div>
+                        </div>
+
                         <!-- Error Message -->
                         <div id="errorMessage" class="hidden">
                             <div class="flex items-start space-x-3 p-3.5 bg-red-50 border border-red-100 rounded-xl">
@@ -148,7 +155,7 @@
 
                 <!-- Footer -->
                 <p class="text-center text-xs text-zinc-500 mt-6">
-                    Protected by industry-standard security measures
+                    Protected by Cloudflare Turnstile
                 </p>
             </div>
         </main>
@@ -191,19 +198,33 @@
             e.preventDefault();
             
             const submitBtn = e.target.querySelector('button[type="submit"]');
+            errorDiv.classList.add('hidden');
+            
+            // Get turnstile token
+            const turnstileToken = turnstile.getResponse();
+            if (!turnstileToken) {
+                errorDiv.classList.remove('hidden');
+                errorDiv.querySelector('p').textContent = 'Please complete the captcha verification';
+                lucide.createIcons();
+                return;
+            }
+            
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>Signing in...</span>';
+            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Signing in...</span>';
+            lucide.createIcons();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            errorDiv.classList.add('hidden');
             
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ 
+                        username, 
+                        password,
+                        turnstileToken: turnstileToken
+                    })
                 });
 
                 const data = await response.json();
@@ -220,6 +241,10 @@
                 } else {
                     errorDiv.classList.remove('hidden');
                     errorDiv.querySelector('p').textContent = data.error || 'Login failed. Please try again.';
+                    lucide.createIcons();
+                    
+                    // Reset turnstile
+                    turnstile.reset();
                     
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
@@ -228,6 +253,10 @@
             } catch (error) {
                 errorDiv.classList.remove('hidden');
                 errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
+                lucide.createIcons();
+                
+                // Reset turnstile
+                turnstile.reset();
                 
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
