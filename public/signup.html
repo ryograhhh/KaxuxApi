@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - KazuX</title>
+    <title>Sign Up - KazuX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -21,7 +21,7 @@
             }
         }
 
-        input:focus, button:focus {
+        input:focus, select:focus, button:focus {
             outline: none;
         }
 
@@ -40,6 +40,14 @@
         .btn-primary:active {
             transform: scale(0.98);
         }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-zinc-50 min-h-screen mobile-safe">
@@ -57,82 +65,162 @@
         <!-- Main Content -->
         <main class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8">
             <div class="w-full max-w-md">
+                <!-- Progress Steps -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <div id="step1-indicator" class="w-8 h-8 rounded-full bg-zinc-900 text-white flex items-center justify-center text-sm font-medium">1</div>
+                            <span id="step1-text" class="text-sm font-medium text-zinc-900">Details</span>
+                        </div>
+                        <div class="flex-1 h-0.5 bg-zinc-200 mx-4"></div>
+                        <div class="flex items-center space-x-2">
+                            <div id="step2-indicator" class="w-8 h-8 rounded-full bg-zinc-200 text-zinc-500 flex items-center justify-center text-sm font-medium">2</div>
+                            <span id="step2-text" class="text-sm font-medium text-zinc-500">Verify</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Card -->
                 <div class="bg-white rounded-2xl shadow-sm border border-zinc-200 p-6 sm:p-8">
-                    <!-- Title -->
-                    <div class="mb-8">
-                        <h1 class="text-2xl sm:text-3xl font-semibold text-zinc-900 mb-2">Welcome back</h1>
-                        <p class="text-sm text-zinc-500">Sign in to your account to continue</p>
+                    <!-- Step 1: Account Details -->
+                    <div id="step1" class="step active">
+                        <div class="mb-8">
+                            <h1 class="text-2xl sm:text-3xl font-semibold text-zinc-900 mb-2">Create account</h1>
+                            <p class="text-sm text-zinc-500">Enter your details to get started</p>
+                        </div>
+
+                        <form id="detailsForm" class="space-y-5">
+                            <!-- Username -->
+                            <div class="space-y-2">
+                                <label for="username" class="block text-sm font-medium text-zinc-700">Username</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <i data-lucide="user" class="w-4 h-4 text-zinc-400"></i>
+                                    </div>
+                                    <input type="text" id="username" required class="input-field w-full pl-10 pr-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400" placeholder="Choose a username" autocomplete="username">
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="space-y-2">
+                                <label for="email" class="block text-sm font-medium text-zinc-700">Email</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <i data-lucide="mail" class="w-4 h-4 text-zinc-400"></i>
+                                    </div>
+                                    <input type="email" id="email" required class="input-field w-full pl-10 pr-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400" placeholder="your@email.com" autocomplete="email">
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="space-y-2">
+                                <label for="password" class="block text-sm font-medium text-zinc-700">Password</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <i data-lucide="lock" class="w-4 h-4 text-zinc-400"></i>
+                                    </div>
+                                    <input type="password" id="password" required minlength="6" class="input-field w-full pl-10 pr-10 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400" placeholder="At least 6 characters" autocomplete="new-password">
+                                    <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center">
+                                        <i data-lucide="eye" class="w-4 h-4 text-zinc-400 hover:text-zinc-600 transition"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-zinc-500">Must be at least 6 characters long</p>
+                            </div>
+
+                            <!-- Gender -->
+                            <div class="space-y-2">
+                                <label for="gender" class="block text-sm font-medium text-zinc-700">Gender</label>
+                                <select id="gender" required class="input-field w-full px-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 appearance-none cursor-pointer" style="background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg width=%2714%27 height=%278%27 viewBox=%270 0 14 8%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M1 1L7 7L13 1%27 stroke=%27%2371717a%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 14px 8px; padding-right: 2.5rem;">
+                                    <option value="">Select your gender</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Birthday -->
+                            <div class="space-y-2">
+                                <label for="birthday" class="block text-sm font-medium text-zinc-700">Date of birth</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <i data-lucide="calendar" class="w-4 h-4 text-zinc-400"></i>
+                                    </div>
+                                    <input type="date" id="birthday" required class="input-field w-full pl-10 pr-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900">
+                                </div>
+                            </div>
+
+                            <!-- Captcha -->
+                            <div class="space-y-2">
+                                <label class="block text-sm font-medium text-zinc-700">Verify you're human</label>
+                                <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8l00Z7QGqw2G-H"></div>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div id="step1Error" class="hidden">
+                                <div class="flex items-start space-x-3 p-3.5 bg-red-50 border border-red-100 rounded-xl">
+                                    <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0"></i>
+                                    <p class="text-sm text-red-800 flex-1"></p>
+                                </div>
+                            </div>
+
+                            <!-- Continue Button -->
+                            <button type="submit" class="btn-primary w-full py-2.5 bg-zinc-900 text-white rounded-xl text-sm font-medium hover:bg-zinc-800 active:bg-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2">
+                                <span>Continue</span>
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                        </form>
                     </div>
 
-                    <!-- Form -->
-                    <form id="loginForm" class="space-y-5">
-                        <!-- Username -->
-                        <div class="space-y-2">
-                            <label for="username" class="block text-sm font-medium text-zinc-700">
-                                Username
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <i data-lucide="user" class="w-4 h-4 text-zinc-400"></i>
-                                </div>
-                                <input 
-                                    type="text" 
-                                    id="username" 
-                                    required 
-                                    class="input-field w-full pl-10 pr-3.5 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400"
-                                    placeholder="Enter your username"
-                                    autocomplete="username"
-                                >
-                            </div>
+                    <!-- Step 2: Email Verification -->
+                    <div id="step2" class="step">
+                        <div class="mb-8">
+                            <h1 class="text-2xl sm:text-3xl font-semibold text-zinc-900 mb-2">Verify your email</h1>
+                            <p class="text-sm text-zinc-500">We've sent a 6-digit code to <span id="emailDisplay" class="font-medium text-zinc-900"></span></p>
                         </div>
 
-                        <!-- Password -->
-                        <div class="space-y-2">
-                            <label for="password" class="block text-sm font-medium text-zinc-700">
-                                Password
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <i data-lucide="lock" class="w-4 h-4 text-zinc-400"></i>
-                                </div>
-                                <input 
-                                    type="password" 
-                                    id="password" 
-                                    required 
-                                    class="input-field w-full pl-10 pr-10 py-2.5 bg-white border border-zinc-200 rounded-xl text-sm text-zinc-900 placeholder:text-zinc-400"
-                                    placeholder="Enter your password"
-                                    autocomplete="current-password"
-                                >
-                                <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3.5 flex items-center">
-                                    <i data-lucide="eye" class="w-4 h-4 text-zinc-400 hover:text-zinc-600 transition"></i>
+                        <form id="verifyForm" class="space-y-5">
+                            <!-- OTP Input -->
+                            <div class="space-y-2">
+                                <label for="otpCode" class="block text-sm font-medium text-zinc-700">Verification Code</label>
+                                <input type="text" id="otpCode" required maxlength="6" pattern="[0-9]{6}" class="input-field w-full px-4 py-2.5 bg-white border border-zinc-200 rounded-xl text-center text-2xl font-bold tracking-widest text-zinc-900" placeholder="000000" autocomplete="one-time-code">
+                                <p class="text-xs text-zinc-500">Enter the 6-digit code from your email</p>
+                            </div>
+
+                            <!-- Resend Code -->
+                            <div class="text-center">
+                                <button type="button" id="resendBtn" disabled class="text-sm text-zinc-500 hover:text-zinc-900 transition">
+                                    Resend code in <span id="countdown">60</span>s
                                 </button>
                             </div>
-                        </div>
 
-                        <!-- Captcha -->
-                        <div class="space-y-2">
-                            <label class="block text-sm font-medium text-zinc-700">Verify you're human</label>
-                            <div class="cf-turnstile" data-sitekey="0x4AAAAAAB8l00Z7QGqw2G-H"></div>
-                        </div>
-
-                        <!-- Error Message -->
-                        <div id="errorMessage" class="hidden">
-                            <div class="flex items-start space-x-3 p-3.5 bg-red-50 border border-red-100 rounded-xl">
-                                <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0"></i>
-                                <p class="text-sm text-red-800 flex-1"></p>
+                            <!-- Error Message -->
+                            <div id="step2Error" class="hidden">
+                                <div class="flex items-start space-x-3 p-3.5 bg-red-50 border border-red-100 rounded-xl">
+                                    <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0"></i>
+                                    <p class="text-sm text-red-800 flex-1"></p>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Submit Button -->
-                        <button 
-                            type="submit" 
-                            class="btn-primary w-full py-2.5 bg-zinc-900 text-white rounded-xl text-sm font-medium hover:bg-zinc-800 active:bg-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                        >
-                            <span>Sign in</span>
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
-                    </form>
+                            <!-- Success Message -->
+                            <div id="step2Success" class="hidden">
+                                <div class="flex items-start space-x-3 p-3.5 bg-green-50 border border-green-100 rounded-xl">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
+                                    <p class="text-sm text-green-800 flex-1"></p>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn-primary w-full py-2.5 bg-zinc-900 text-white rounded-xl text-sm font-medium hover:bg-zinc-800 active:bg-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2">
+                                <span>Create Account</span>
+                                <i data-lucide="check" class="w-4 h-4"></i>
+                            </button>
+
+                            <!-- Back Button -->
+                            <button type="button" id="backBtn" class="w-full py-2.5 text-zinc-600 hover:text-zinc-900 rounded-xl text-sm font-medium transition">
+                                Back to details
+                            </button>
+                        </form>
+                    </div>
 
                     <!-- Divider -->
                     <div class="relative my-6">
@@ -140,22 +228,19 @@
                             <div class="w-full border-t border-zinc-200"></div>
                         </div>
                         <div class="relative flex justify-center text-xs">
-                            <span class="px-2 bg-white text-zinc-500">Don't have an account?</span>
+                            <span class="px-2 bg-white text-zinc-500">Already have an account?</span>
                         </div>
                     </div>
 
-                    <!-- Signup Link -->
-                    <a 
-                        href="/signup.html" 
-                        class="block w-full py-2.5 bg-zinc-50 text-zinc-900 rounded-xl text-sm font-medium hover:bg-zinc-100 transition text-center"
-                    >
-                        Create an account
+                    <!-- Login Link -->
+                    <a href="/login.html" class="block w-full py-2.5 bg-zinc-50 text-zinc-900 rounded-xl text-sm font-medium hover:bg-zinc-100 transition text-center">
+                        Sign in instead
                     </a>
                 </div>
 
                 <!-- Footer -->
                 <p class="text-center text-xs text-zinc-500 mt-6">
-                    Protected by Cloudflare Turnstile
+                    By creating an account, you agree to our Terms of Service and Privacy Policy
                 </p>
             </div>
         </main>
@@ -173,11 +258,12 @@
     <script>
         lucide.createIcons();
 
-        // Toggle password visibility
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('password');
+        let userFormData = {};
+        let countdownInterval = null;
 
-        togglePassword.addEventListener('click', function() {
+        // Toggle password visibility
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
             const icon = this.querySelector('i');
             
             if (passwordInput.type === 'password') {
@@ -190,16 +276,24 @@
             lucide.createIcons();
         });
 
-        // Login form submission
-        const loginForm = document.getElementById('loginForm');
-        const errorDiv = document.getElementById('errorMessage');
-
-        loginForm.addEventListener('submit', async (e) => {
+        // Step 1: Details Form
+        document.getElementById('detailsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const submitBtn = e.target.querySelector('button[type="submit"]');
+            const errorDiv = document.getElementById('step1Error');
+            
             errorDiv.classList.add('hidden');
             
+            // Get form data
+            userFormData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                gender: document.getElementById('gender').value,
+                birthday: document.getElementById('birthday').value
+            };
+
             // Get turnstile token
             const turnstileToken = turnstile.getResponse();
             if (!turnstileToken) {
@@ -208,21 +302,18 @@
                 lucide.createIcons();
                 return;
             }
-            
+
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Signing in...</span>';
+            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Sending code...</span>';
             lucide.createIcons();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
             try {
-                const response = await fetch('/api/auth/login', {
+                // Request OTP
+                const response = await fetch('/api/otp/request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        username, 
-                        password,
+                        email: userFormData.email,
                         turnstileToken: turnstileToken
                     })
                 });
@@ -230,24 +321,120 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    localStorage.setItem('sessionToken', data.data.token);
+                    // Move to step 2
+                    document.getElementById('step1').classList.remove('active');
+                    document.getElementById('step2').classList.add('active');
+                    document.getElementById('emailDisplay').textContent = userFormData.email;
                     
-                    // Check if admin
-                    if (data.data.user.isAdmin) {
-                        window.location.href = '/admin.html';
-                    } else {
-                        window.location.href = '/index.html';
-                    }
-                } else {
-                    errorDiv.classList.remove('hidden');
-                    errorDiv.querySelector('p').textContent = data.error || 'Login failed. Please try again.';
+                    // Update progress
+                    document.getElementById('step1-indicator').classList.remove('bg-zinc-900', 'text-white');
+                    document.getElementById('step1-indicator').classList.add('bg-green-500', 'text-white');
+                    document.getElementById('step1-indicator').innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+                    document.getElementById('step2-indicator').classList.remove('bg-zinc-200', 'text-zinc-500');
+                    document.getElementById('step2-indicator').classList.add('bg-zinc-900', 'text-white');
+                    document.getElementById('step2-text').classList.remove('text-zinc-500');
+                    document.getElementById('step2-text').classList.add('text-zinc-900');
                     lucide.createIcons();
                     
-                    // Reset turnstile
+                    // Start countdown
+                    startCountdown();
+                } else {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.querySelector('p').textContent = data.error || 'Failed to send verification code';
+                    lucide.createIcons();
                     turnstile.reset();
+                }
+            } catch (error) {
+                errorDiv.classList.remove('hidden');
+                errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
+                lucide.createIcons();
+                turnstile.reset();
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>Continue</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                lucide.createIcons();
+            }
+        });
+
+        // Step 2: Verify Form
+        document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const errorDiv = document.getElementById('step2Error');
+            const successDiv = document.getElementById('step2Success');
+            const otpCode = document.getElementById('otpCode').value;
+            
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            
+            if (!/^\d{6}$/.test(otpCode)) {
+                errorDiv.classList.remove('hidden');
+                errorDiv.querySelector('p').textContent = 'Please enter a valid 6-digit code';
+                lucide.createIcons();
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Creating account...</span>';
+            lucide.createIcons();
+            
+            try {
+                // First verify OTP
+                const verifyResponse = await fetch('/api/otp/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: userFormData.email,
+                        code: otpCode
+                    })
+                });
+
+                const verifyData = await verifyResponse.json();
+
+                if (!verifyResponse.ok || !verifyData.success) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.querySelector('p').textContent = verifyData.error || 'Invalid verification code';
+                    lucide.createIcons();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>Create Account</span><i data-lucide="check" class="w-4 h-4"></i>';
+                    lucide.createIcons();
+                    return;
+                }
+
+                // Get new turnstile token for signup
+                turnstile.reset();
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for turnstile to reload
+                const signupTurnstileToken = turnstile.getResponse();
+
+                // Now create account
+                const signupResponse = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...userFormData,
+                        turnstileToken: signupTurnstileToken,
+                        otpCode: otpCode
+                    })
+                });
+
+                const signupData = await signupResponse.json();
+
+                if (signupResponse.ok && signupData.success) {
+                    successDiv.classList.remove('hidden');
+                    successDiv.querySelector('p').textContent = signupData.message;
+                    lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 1500);
+                } else {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.querySelector('p').textContent = signupData.error || 'Signup failed';
+                    lucide.createIcons();
                     
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                    submitBtn.innerHTML = '<span>Create Account</span><i data-lucide="check" class="w-4 h-4"></i>';
                     lucide.createIcons();
                 }
             } catch (error) {
@@ -255,13 +442,107 @@
                 errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
                 lucide.createIcons();
                 
-                // Reset turnstile
-                turnstile.reset();
-                
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>Sign in</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                submitBtn.innerHTML = '<span>Create Account</span><i data-lucide="check" class="w-4 h-4"></i>';
                 lucide.createIcons();
             }
+        });
+
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+            
+            // Reset progress
+            document.getElementById('step1-indicator').classList.remove('bg-green-500');
+            document.getElementById('step1-indicator').classList.add('bg-zinc-900');
+            document.getElementById('step1-indicator').textContent = '1';
+            document.getElementById('step2-indicator').classList.remove('bg-zinc-900', 'text-white');
+            document.getElementById('step2-indicator').classList.add('bg-zinc-200', 'text-zinc-500');
+            document.getElementById('step2-text').classList.remove('text-zinc-900');
+            document.getElementById('step2-text').classList.add('text-zinc-500');
+            
+            // Clear OTP
+            document.getElementById('otpCode').value = '';
+            document.getElementById('step2Error').classList.add('hidden');
+            document.getElementById('step2Success').classList.add('hidden');
+            
+            // Stop countdown
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            
+            lucide.createIcons();
+        });
+
+        // Countdown timer
+        function startCountdown() {
+            let seconds = 60;
+            const resendBtn = document.getElementById('resendBtn');
+            const countdownSpan = document.getElementById('countdown');
+            
+            resendBtn.disabled = true;
+            
+            countdownInterval = setInterval(() => {
+                seconds--;
+                countdownSpan.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend code';
+                }
+            }, 1000);
+        }
+
+        // Resend code
+        document.getElementById('resendBtn').addEventListener('click', async () => {
+            const resendBtn = document.getElementById('resendBtn');
+            const errorDiv = document.getElementById('step2Error');
+            
+            errorDiv.classList.add('hidden');
+            resendBtn.disabled = true;
+            
+            try {
+                const turnstileToken = turnstile.getResponse();
+                const response = await fetch('/api/otp/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: userFormData.email,
+                        turnstileToken: turnstileToken
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    startCountdown();
+                } else {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.querySelector('p').textContent = data.error || 'Failed to resend code';
+                    lucide.createIcons();
+                    resendBtn.disabled = false;
+                }
+            } catch (error) {
+                errorDiv.classList.remove('hidden');
+                errorDiv.querySelector('p').textContent = 'An error occurred. Please try again.';
+                lucide.createIcons();
+                resendBtn.disabled = false;
+            }
+        });
+
+        // Auto-focus OTP input when step 2 is shown
+        const observer = new MutationObserver(() => {
+            if (document.getElementById('step2').classList.contains('active')) {
+                document.getElementById('otpCode').focus();
+            }
+        });
+
+        observer.observe(document.getElementById('step2'), {
+            attributes: true,
+            attributeFilter: ['class']
         });
     </script>
 </body>
